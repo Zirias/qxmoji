@@ -1,36 +1,22 @@
 #include "emojibutton.h"
 
-#include <QFontDatabase>
-
 #include "emoji.h"
-
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-#define dbfont(f,s,p) QFontDatabase::font((f),(s),(p))
-#define sysfont QFontDatabase::systemFont(QFontDatabase::GeneralFont)
-#else
-#define dbfont(f,s,p) qfontdatabase.font((f),(s),(p))
-#define sysfont qfontdatabase.systemFont(QFontDatabase::GeneralFont)
-#endif
 
 EmojiButton::EmojiButton(QWidget *parent, const Emoji *emoji) :
     QLabel(parent), emoji(emoji)
 {
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    QFontDatabase qfontdatabase;
-#endif
-    int pointsize = sysfont.pointSize();
-    if (pointsize > 0) pointsize += pointsize / 2;
-    else pointsize = 14;
-    QFont font = dbfont("Noto Color Emoji", QString(), pointsize);
-    if (font.family() != "Noto Color Emoji")
+    setText("xx");
+}
+
+void EmojiButton::showEvent(QShowEvent *ev)
+{
+    if (toolTip().isEmpty())
     {
-	font = dbfont("Noto Emoji", QString(), pointsize);
+	setText(QString::fromUcs4(Emoji_codepoints(emoji)));
+	setToolTip(Emoji_name(emoji));
+	setAutoFillBackground(true);
     }
-    setFont(font);
-    setText(QString::fromUcs4(Emoji_codepoints(emoji)));
-    setToolTip(Emoji_name(emoji));
-    setBackgroundRole(QPalette::Window);
-    setAutoFillBackground(true);
+    QWidget::showEvent(ev);
 }
 
 void EmojiButton::enterEvent(QEvent *ev)
@@ -43,7 +29,7 @@ void EmojiButton::enterEvent(QEvent *ev)
 void EmojiButton::leaveEvent(QEvent *ev)
 {
     (void) ev;
-    setBackgroundRole(QPalette::Window);
+    setBackgroundRole(QPalette::NoRole);
     unsetCursor();
 }
 

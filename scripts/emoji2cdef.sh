@@ -5,9 +5,17 @@ _groups=0
 
 parsegroup()
 {
-    _group=${1#"# group: "}
-    test "${1%" ${_group}"}" = "# group:" || return 1
-    test -n "${_group#Component}" || return 1
+    _group=${1#'# '*'group: '}
+    case "${_group}" in
+	'') return 1 ;;
+	"People & Body") return 1 ;;
+	Component) return 1 ;;
+	hand-fingers-open) _group="Hands & Body parts" ;;
+	person) _group="Person" ;;
+	person-activity) _group="Activities" ;;
+	family) _group="Family" ;;
+	*) test "${1%" ${_group}"}" = "# group:" || return 1 ;;
+    esac
     eval _group_${_groups}'_name="${_group}"'
     if [ ${_groups} -gt 0 ]; then
 	echo "\
@@ -42,12 +50,18 @@ parseemoji()
 {
     test ${_groups} -gt 0 || return 1
     _codepoints=${1%;*}
+    case "${_codepoints}" in
+	*' FE0F'*) return 1 ;;
+	*' FE0E'*) return 1 ;;
+	'') return 1 ;;
+	*) ;;
+    esac
     test -n "${_codepoints}" || return 1
     _rest=${1#${_codepoints}*;}
     _name=${_rest##*qualified*#*E}
     case "${_rest%"${_name}"}" in
 	*qualified*\#*E) ;;
-	*) return 1
+	*) return 1 ;;
     esac
     while
 	_chr=$(printf %c "${_name}")
@@ -94,6 +108,12 @@ SOLOCAL const char32_t *Emoji_codepoints(const Emoji *self)
     return self->codepoints;
 }
 
+SOLOCAL const Emoji *Emoji_next(const Emoji *self)
+{
+    if (!(++self)->name) return 0;
+    return self;
+}
+
 SOLOCAL const char *EmojiGroup_name(const EmojiGroup *self)
 {
     return self->name;
@@ -102,5 +122,11 @@ SOLOCAL const char *EmojiGroup_name(const EmojiGroup *self)
 SOLOCAL const Emoji *EmojiGroup_emojis(const EmojiGroup *self)
 {
     return self->emojis;
+}
+
+SOLOCAL const EmojiGroup *EmojiGroup_next(const EmojiGroup *self)
+{
+    if (!(++self)->name) return 0;
+    return self;
 }
 "

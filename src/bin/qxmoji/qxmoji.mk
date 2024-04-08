@@ -1,6 +1,7 @@
 qxmoji_VERSION=		0.1
 qxmoji_MODULES=		emoji
-qxmoji_CXXMODULES=	main \
+qxmoji_CXXMODULES=	flowlayout \
+			main \
 			$(qxmoji_PREPROCMODULES)
 qxmoji_PREPROCMODULES=	emojibutton \
 			qxmoji \
