@@ -1,9 +1,12 @@
 #ifndef QXMOJI_QXMOJIWIN_H
 #define QXMOJI_QXMOJIWIN_H
 
+#include "decl.h"
+
 #include <QScopedPointer>
 #include <QWidget>
 
+class EmojiButton;
 class QXmojiWinPrivate;
 class QXmojiWin: public QWidget
 {
@@ -14,6 +17,9 @@ class QXmojiWin: public QWidget
     public:
 	QXmojiWin();
 	~QXmojiWin();
+
+    signals:
+	void clicked(const EmojiButton *button);
 };
 
 #endif

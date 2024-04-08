@@ -1,5 +1,8 @@
 #include "qxmoji.h"
+
+#include "emojibutton.h"
 #include "qxmojiwin.h"
+#include "xkeyinjector.h"
 
 class QXmojiPrivate {
     Q_DISABLE_COPY(QXmojiPrivate)
@@ -16,7 +19,10 @@ QXmojiPrivate::QXmojiPrivate(QXmoji *app) : q_ptr(app) {}
 QXmoji::QXmoji(int &argc, char **argv) :
     QApplication(argc, argv),
     d_ptr(new QXmojiPrivate(this))
-{}
+{
+    connect(&d_ptr->win, &QXmojiWin::clicked, [](const EmojiButton *b){
+	    XKeyInjector_inject(b->emoji());});
+}
 
 void QXmoji::show()
 {

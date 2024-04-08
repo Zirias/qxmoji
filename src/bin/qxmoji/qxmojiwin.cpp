@@ -64,6 +64,8 @@ QXmojiWin::QXmojiWin() :
 	{
 	    EmojiButton *button = new EmojiButton(emojis, emoji);
 	    button->setFont(font);
+	    connect(button, &EmojiButton::clicked, [this, button](){
+		    emit clicked(button); });
 	    layout->addWidget(button);
 	}
 	emojis->setLayout(layout);

@@ -14,13 +14,14 @@ class EmojiButton: public QLabel
 {
 	Q_OBJECT
 
-	const Emoji *emoji;
+	const Emoji *_emoji;
 	
     public:
 	EmojiButton(QWidget *parent, const Emoji *emoji);
+	const Emoji *emoji() const;
 
     signals:
-	void clicked(const Emoji *emoji);
+	void clicked();
 
     protected:
 	void enterEvent(QEvent *ev);
