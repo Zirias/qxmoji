@@ -23,6 +23,7 @@ qxmoji_GEN=		E2C
 qxmoji_E2C_FILES=	emoji.c:contrib/emoji-test.txt
 qxmoji_ICONSIZES=	16x16 32x32 48x48 256x256
 qxmoji_DESKTOPFILE=	qxmoji
+qxmoji_DOCS=		README.md
 
 ifeq ($(QT_VERSION),5)
 qxmoji_PKGDEPS+=	Qt5Core \
