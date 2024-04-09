@@ -23,7 +23,7 @@ sends key-press and key-release events for these in sequence, using the
 `Xtest` extension. Without the extension, only "synthetic" events can be sent,
 and many X11 clients would just ignore them.
 
-When the sequence is complete, it sleeps for 10 milliseconds before restoring
+When the sequence is complete, it sleeps for 50 milliseconds before restoring
 the original keyboard mapping. Waiting is necessary because otherwise, the X11
 client receiving the keyboard events could update its own mapping before it is
 used to map the keyboard events still queued.

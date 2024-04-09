@@ -78,7 +78,7 @@ void XKeyInjector_inject(const Emoji *emoji)
 	}
     }
 
-    usleep(10000);
+    usleep(50000);
     if ((error = xcb_request_check(c, xcb_change_keyboard_mapping(
 		c, len, s->min_keycode, kmap->keysyms_per_keycode,
 		(xcb_keysym_t*)(kmap + 1)))))
