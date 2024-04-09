@@ -15,7 +15,7 @@ qxmoji_PKGDEPS=		xcb \
 			xcb-xtest
 qxmoji_SUB_FILES=	decl.h
 qxmoji_GEN=		E2C
-qxmoji_E2C_FILES:=	emoji.c:../../../contrib/emoji-test.txt
+qxmoji_E2C_FILES=	emoji.c:contrib/emoji-test.txt
 
 ifeq ($(QT_VERSION),5)
 qxmoji_PKGDEPS+=	Qt5Core \
