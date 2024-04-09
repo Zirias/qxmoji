@@ -9,12 +9,19 @@ class QXmojiPrivate {
     Q_DECLARE_PUBLIC(QXmoji)
     QXmoji *const q_ptr;
 
+    QIcon appIcon;
     QXmojiWin win;
     
     QXmojiPrivate(QXmoji *);
 };
 
-QXmojiPrivate::QXmojiPrivate(QXmoji *app) : q_ptr(app) {}
+QXmojiPrivate::QXmojiPrivate(QXmoji *app) : q_ptr(app)
+{
+    appIcon.addPixmap(QPixmap(":/icon_48.png"));
+    appIcon.addPixmap(QPixmap(":/icon_32.png"));
+    appIcon.addPixmap(QPixmap(":/icon_16.png"));
+    win.setWindowIcon(appIcon);
+}
 
 QXmoji::QXmoji(int &argc, char **argv) :
     QApplication(argc, argv),

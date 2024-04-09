@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=qXmoji
+GenericName=X11 emoji keyboard
+Exec=%%bindir%%/qxmoji
+Icon=qxmoji
+StartupNotify=true
+Terminal=false
+Type=Application
+Categories=Utility;
