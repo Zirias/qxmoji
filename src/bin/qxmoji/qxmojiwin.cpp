@@ -2,55 +2,44 @@
 
 #include "emoji.h"
 #include "emojibutton.h"
+#include "emojifont.h"
 #include "flowlayout.h"
 
-#include <QFontDatabase>
+#include <QAction>
+#include <QContextMenuEvent>
 #include <QHBoxLayout>
+#include <QMenu>
 #include <QScrollArea>
 #include <QTabBar>
 #include <QTabWidget>
-
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-#define dbfont(f,s,p) QFontDatabase::font((f),(s),(p))
-#define sysfont QFontDatabase::systemFont(QFontDatabase::GeneralFont)
-#else
-#define dbfont(f,s,p) qfontdatabase.font((f),(s),(p))
-#define sysfont qfontdatabase.systemFont(QFontDatabase::GeneralFont)
-#endif
 
 class QXmojiWinPrivate {
     Q_DISABLE_COPY(QXmojiWinPrivate)
     Q_DECLARE_PUBLIC(QXmojiWin)
     QXmojiWin *const q_ptr;
 
+    QAction settings;
+    QAction exit;
+
     QXmojiWinPrivate(QXmojiWin *);
 };
 
 QXmojiWinPrivate::QXmojiWinPrivate(QXmojiWin *win) :
-    q_ptr(win)
-{
-}
+    q_ptr(win),
+    settings("&Settings"),
+    exit("E&xit")
+{}
 
-QXmojiWin::QXmojiWin() :
+QXmojiWin::QXmojiWin(const EmojiFont *font) :
     QWidget(nullptr, Qt::WindowDoesNotAcceptFocus),
     d_ptr(new QXmojiWinPrivate(this))
 {
-#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    QFontDatabase qfontdatabase;
-#endif
-    int pointsize = sysfont.pointSize();
-    if (pointsize > 0) pointsize += pointsize / 2;
-    else pointsize = 14;
-    QFont font = dbfont("Noto Color Emoji", QString(), pointsize);
-    if (font.family() != "Noto Color Emoji")
-    {
-	font = dbfont("Noto Emoji", QString(), pointsize);
-    }
-
     setAttribute(Qt::WA_AlwaysShowToolTips);
     QTabWidget *tabs = new QTabWidget(this);
-    tabs->tabBar()->setFont(font);
+    tabs->tabBar()->setFont(font->font());
     tabs->setStyleSheet("QTabBar::tab { padding: 4px; }");
+    connect(font, &EmojiFont::fontChanged, [font, tabs](){
+	    tabs->tabBar()->setFont(font->font()); });
 
     int i = 0;
     for (const EmojiGroup *group = emojigroups; group;
@@ -63,9 +52,11 @@ QXmojiWin::QXmojiWin() :
 		emoji; emoji = Emoji_next(emoji))
 	{
 	    EmojiButton *button = new EmojiButton(emojis, emoji);
-	    button->setFont(font);
+	    button->setFont(font->font());
 	    connect(button, &EmojiButton::clicked, [this, button](){
 		    emit clicked(button); });
+	    connect(font, &EmojiFont::fontChanged, [font, button](){
+		    button->setFont(font->font()); });
 	    layout->addWidget(button);
 	}
 	emojis->setLayout(layout);
@@ -80,6 +71,26 @@ QXmojiWin::QXmojiWin() :
     box->setContentsMargins(0, 0, 0, 0);
     box->addWidget(tabs);
     setLayout(box);
+
+    connect(&d_ptr->settings, &QAction::triggered, [this](){
+	    emit settings(); });
+    connect(&d_ptr->exit, &QAction::triggered, [this](){
+	    emit exit(); });
 }
 
 QXmojiWin::~QXmojiWin() {}
+
+void QXmojiWin::closeEvent(QCloseEvent *ev)
+{
+    emit closing();
+    QWidget::closeEvent(ev);
+}
+
+void QXmojiWin::contextMenuEvent(QContextMenuEvent *ev)
+{
+    Q_D(QXmojiWin);
+    QMenu menu(this);
+    menu.addAction(&d->settings);
+    menu.addAction(&d->exit);
+    menu.exec(ev->globalPos());
+}

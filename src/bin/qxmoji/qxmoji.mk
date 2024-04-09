@@ -5,6 +5,8 @@ qxmoji_CXXMODULES=	flowlayout \
 			main \
 			$(qxmoji_PREPROCMODULES)
 qxmoji_PREPROCMODULES=	emojibutton \
+			emojifont \
+			settingsdlg \
 			qxmoji \
 			qxmojiwin
 qxmoji_PREPROC=		MOC
