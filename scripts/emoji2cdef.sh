@@ -56,7 +56,6 @@ parseemoji()
 	'') return 1 ;;
 	*) ;;
     esac
-    test -n "${_codepoints}" || return 1
     _rest=${1#${_codepoints}*;}
     _name=${_rest##*qualified*#*E}
     case "${_rest%"${_name}"}" in
