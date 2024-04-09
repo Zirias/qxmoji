@@ -24,7 +24,11 @@ void EmojiButton::showEvent(QShowEvent *ev)
     QWidget::showEvent(ev);
 }
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 void EmojiButton::enterEvent(QEvent *ev)
+#else
+void EmojiButton::enterEvent(QEnterEvent *ev)
+#endif
 {
     (void) ev;
     setBackgroundRole(QPalette::Highlight);

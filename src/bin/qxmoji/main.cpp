@@ -8,7 +8,10 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #include <QX11Info>
+#endif
+
 #include <iostream>
 
 #if NDEBUG
@@ -51,12 +54,22 @@ int main(int argc, char **argv)
 
     QXmoji qxmoji(argc, argv);
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     if (!QX11Info::isPlatformX11())
     {
 	std::cerr << "qXmoji requires X11" << std::endl;
 	return 1;
     }
     XKeyInjector_setConnection(QX11Info::connection());
+#else
+    auto x11app = qxmoji.nativeInterface<QNativeInterface::QX11Application>();
+    if (!x11app)
+    {
+	std::cerr << "qXmoji requires X11" << std::endl;
+	return 1;
+    }
+    XKeyInjector_setConnection(x11app->connection());
+#endif
 
 #if NDEBUG
     freopen("/dev/null", "r", stdin);

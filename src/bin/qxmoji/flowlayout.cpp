@@ -24,7 +24,7 @@ int FlowLayoutPrivate::doLayout(const QRect &rect, bool testOnly) const
     int y = rect.y();
     int lineHeight = 0;
 
-    for (QLayoutItem *item : qAsConst(items))
+    for (QLayoutItem *item : std::as_const(items))
     {
 	int nextX = x + item->sizeHint().width();
 	if (nextX > rect.right() && lineHeight > 0)
@@ -118,7 +118,7 @@ QSize FlowLayout::minimumSize() const
 {
     Q_D(const FlowLayout);
     QSize size;
-    for (const QLayoutItem *item : qAsConst(d->items))
+    for (const QLayoutItem *item : std::as_const(d->items))
     {
 	size = size.expandedTo(item->minimumSize());
     }

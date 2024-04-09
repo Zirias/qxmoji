@@ -7,6 +7,7 @@
 
 C_CLASS_DECL(Emoji);
 class QEvent;
+class QEnterEvent;
 class QMouseEvent;
 class QShowEvent;
 
@@ -24,7 +25,11 @@ class EmojiButton: public QLabel
 	void clicked();
 
     protected:
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 	void enterEvent(QEvent *ev);
+#else
+	void enterEvent(QEnterEvent *ev);
+#endif
 	void leaveEvent(QEvent *ev);
 	void mousePressEvent(QMouseEvent *ev);
 	void showEvent(QShowEvent *ev);

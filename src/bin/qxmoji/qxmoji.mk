@@ -11,15 +11,22 @@ qxmoji_PREPROC=		MOC
 qxmoji_PREPROCFLAGS=	-p.
 qxmoji_INCLUDES=	-I$(qxmoji_PPSRCDIR)
 qxmoji_CXXFLAGS=	-fPIC
-qxmoji_PKGDEPS=		Qt5Core \
-			Qt5Gui \
-			Qt5Widgets \
-			Qt5X11Extras \
-			xcb \
+qxmoji_PKGDEPS=		xcb \
 			xcb-xtest
 qxmoji_SUB_FILES=	decl.h
 qxmoji_GEN=		E2C
 qxmoji_E2C_FILES:=	emoji.c:../../../contrib/emoji-test.txt
+
+ifeq ($(QT_VERSION),5)
+qxmoji_PKGDEPS+=	Qt5Core \
+			Qt5Gui \
+			Qt5Widgets \
+			Qt5X11Extras
+else
+qxmoji_PKGDEPS+=	Qt6Core \
+			Qt6Gui \
+			Qt6Widgets
+endif
 
 GEN_E2C_tool=		$(HOSTSH)
 GEN_E2C_args=		scripts/emoji2cdef.sh >$1 <$2
