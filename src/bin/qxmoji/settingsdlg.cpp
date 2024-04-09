@@ -54,6 +54,7 @@ SettingsDlg::SettingsDlg(QWidget *parent) :
 {
     setWindowTitle("qXmoji settings");
     QFormLayout *layout = new QFormLayout(this);
+    layout->setLabelAlignment(Qt::AlignRight);
     layout->addRow(&d_ptr->scaleLabel, &d_ptr->scaleSelect);
     layout->addRow(&d_ptr->waitLabel, &d_ptr->waitSelect);
     setLayout(layout);
