@@ -22,3 +22,5 @@ defaults.mk
 /obj/
 /test/
 /dist/
+/src/bin/qxmoji/decl.h
+/src/bin/qxmoji/emoji.c

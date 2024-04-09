@@ -18,5 +18,10 @@ qxmoji_PKGDEPS=		Qt5Core \
 			xcb \
 			xcb-xtest
 qxmoji_SUB_FILES=	decl.h
+qxmoji_GEN=		E2C
+qxmoji_E2C_FILES:=	emoji.c:../../../contrib/emoji-test.txt
+
+GEN_E2C_tool=		$(HOSTSH)
+GEN_E2C_args=		scripts/emoji2cdef.sh >$1 <$2
 
 $(call binrules,qxmoji)
