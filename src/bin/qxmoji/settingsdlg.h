@@ -19,9 +19,11 @@ class SettingsDlg: public QDialog
 
     public slots:
 	void setScale(EmojiFont::Scale scale);
+	void setWaitMs(int waitMs);
 
     signals:
 	void scaleChanged(EmojiFont::Scale scale);
+	void waitMsChanged(int waitMs);
 };
 
 #endif

@@ -39,6 +39,11 @@ QXmojiPrivate::QXmojiPrivate(QXmoji *app) :
 	    "scale", EmojiFont::Scale::Small).value<EmojiFont::Scale>();
     font.setScale(scale);
     settingsDlg.setScale(scale);
+    int waitMs = settings.value("wait", 50).toInt();
+    if (waitMs < 0) waitMs = 0;
+    if (waitMs > 500) waitMs = 500;
+    XKeyInjector_setWaitMs(waitMs);
+    settingsDlg.setWaitMs(waitMs);
 }
 
 QXmoji::QXmoji(int &argc, char **argv) :
@@ -57,6 +62,11 @@ QXmoji::QXmoji(int &argc, char **argv) :
     connect(&d_ptr->settingsDlg, &SettingsDlg::scaleChanged,
 	    [this](EmojiFont::Scale scale){
 		d_ptr->settings.setValue("scale", scale);
+	    });
+    connect(&d_ptr->settingsDlg, &SettingsDlg::waitMsChanged,
+	    [this](int ms){
+		XKeyInjector_setWaitMs(ms);
+		d_ptr->settings.setValue("wait", ms);
 	    });
 }
 
