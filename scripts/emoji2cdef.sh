@@ -82,7 +82,8 @@ while read -r _line; do
 done
 
 test ${_groups} -gt 0 || exit 1
-echo "};"
+echo "    { { 0 }, 0 }
+};"
 echo
 echo 'static EmojiGroup groups[] = {'
 _group=0

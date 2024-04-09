@@ -28,7 +28,6 @@ qxmoji_PKGDEPS+=	Qt6Core \
 			Qt6Widgets
 endif
 
-GEN_E2C_tool=		$(HOSTSH)
-GEN_E2C_args=		scripts/emoji2cdef.sh >$1 <$2
+GEN_E2C_tool=		$(HOSTSH) scripts/emoji2cdef.sh
 
 $(call binrules,qxmoji)
