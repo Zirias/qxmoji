@@ -2,6 +2,8 @@
 
 #include "emoji.h"
 
+#include <QMouseEvent>
+
 EmojiButton::EmojiButton(QWidget *parent, const Emoji *emoji) :
     QLabel(parent), _emoji(emoji)
 {
@@ -44,7 +46,9 @@ void EmojiButton::leaveEvent(QEvent *ev)
 
 void EmojiButton::mousePressEvent(QMouseEvent *ev)
 {
-    (void) ev;
-    emit clicked();
+    if (ev->button() == Qt::LeftButton && ev->buttons() == Qt::LeftButton)
+    {
+	emit clicked();
+    }
 }
 
