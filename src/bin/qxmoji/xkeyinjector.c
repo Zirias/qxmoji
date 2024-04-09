@@ -5,11 +5,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
+#include <time.h>
 #include <xcb/xtest.h>
 
 static xcb_connection_t *c;
 static const xcb_setup_t *s;
+static int waitms = 50;
 
 static void *xmalloc(size_t n)
 {
@@ -24,8 +25,16 @@ void XKeyInjector_setConnection(xcb_connection_t *conn)
     s = xcb_get_setup(c);
 }
 
+void XKeyInjector_setWaitMs(int ms)
+{
+    if (ms < 0) ms = 0;
+    if (ms > 500) ms = 500;
+    waitms = ms;
+}
+
 void XKeyInjector_inject(const Emoji *emoji)
 {
+    if (!c) return;
     xcb_generic_error_t *error;
     xcb_keysym_t *syms = 0;
     xcb_get_keyboard_mapping_reply_t *kmap =
@@ -78,7 +87,15 @@ void XKeyInjector_inject(const Emoji *emoji)
 	}
     }
 
-    usleep(50000);
+    if (waitms)
+    {
+	struct timespec ts = {
+	    .tv_sec = 0,
+	    .tv_nsec = 1000000 * waitms
+	};
+	nanosleep(&ts, &ts);
+    }
+
     if ((error = xcb_request_check(c, xcb_change_keyboard_mapping(
 		c, len, s->min_keycode, kmap->keysyms_per_keycode,
 		(xcb_keysym_t*)(kmap + 1)))))
