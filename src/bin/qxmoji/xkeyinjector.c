@@ -57,7 +57,6 @@ void XKeyInjector_inject(const Emoji *emoji)
 	free(error);
 	goto done;
     }
-    usleep(1000);
 
     for (size_t x = 0; x < len; ++x)
     {
@@ -65,30 +64,26 @@ void XKeyInjector_inject(const Emoji *emoji)
 			    XCB_KEY_PRESS, s->min_keycode + x,
 			    XCB_CURRENT_TIME, XCB_NONE, 0, 0, 0))))
 	{
-	    fputs("Error sending key press event.\n", stderr);
+	    fputs("Error sending X11 key press event.\n", stderr);
 	    free(error);
 	    goto done;
 	}
-    }
-    usleep(6000);
-    for (size_t x = 0; x < len; ++x)
-    {
 	if ((error = xcb_request_check(c, xcb_test_fake_input(c,
 			    XCB_KEY_RELEASE, s->min_keycode + x,
 			    XCB_CURRENT_TIME, XCB_NONE, 0, 0, 0))))
 	{
-	    fputs("Error sending key release event.\n", stderr);
+	    fputs("Error sending X11 key release event.\n", stderr);
 	    free(error);
 	    goto done;
 	}
     }
 
-    usleep(100000);
+    usleep(10000);
     if ((error = xcb_request_check(c, xcb_change_keyboard_mapping(
 		c, len, s->min_keycode, kmap->keysyms_per_keycode,
 		(xcb_keysym_t*)(kmap + 1)))))
     {
-	fputs("Error restoring keyboard mapping.\n", stderr);
+	fputs("Error restoring X11 keyboard mapping.\n", stderr);
 	free(error);
 	goto done;
     }
