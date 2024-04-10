@@ -1,0 +1,21 @@
+#include "searchfield.h"
+
+#include <QMouseEvent>
+
+SearchField::SearchField() : QLineEdit()
+{
+    setPlaceholderText("Click to type and search ...");
+}
+
+void SearchField::mousePressEvent(QMouseEvent *ev)
+{
+    if (ev->button() == Qt::LeftButton) emit activated();
+    QLineEdit::mousePressEvent(ev);
+}
+
+void SearchField::leaveEvent(QEvent *ev)
+{
+    emit left();
+    QLineEdit::leaveEvent(ev);
+}
+

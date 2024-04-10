@@ -28,6 +28,8 @@ class QXmojiWin: public QWidget
 
     signals:
 	void clicked(const EmojiButton *button);
+	void grab();
+	void ungrab();
 	void closing();
 	void settings();
 	void exit();

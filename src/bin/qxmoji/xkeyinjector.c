@@ -10,7 +10,9 @@
 
 static xcb_connection_t *c;
 static const xcb_setup_t *s;
+static xcb_window_t w;
 static int waitms = 50;
+static int kbgrabbed = 0;
 
 static void *xmalloc(size_t n)
 {
@@ -25,6 +27,11 @@ void XKeyInjector_setConnection(xcb_connection_t *conn)
     s = xcb_get_setup(c);
 }
 
+void XKeyInjector_setGrabWindow(unsigned id)
+{
+    w = id;
+}
+
 void XKeyInjector_setWaitMs(int ms)
 {
     if (ms < 0) ms = 0;
@@ -35,6 +42,7 @@ void XKeyInjector_setWaitMs(int ms)
 void XKeyInjector_inject(const Emoji *emoji)
 {
     if (!c) return;
+    if (kbgrabbed) XKeyInjector_ungrabKeyboard();
     xcb_generic_error_t *error;
     xcb_keysym_t *syms = 0;
     xcb_get_keyboard_mapping_reply_t *kmap =
@@ -108,4 +116,28 @@ void XKeyInjector_inject(const Emoji *emoji)
 done:
     free(syms);
     free(kmap);
+}
+
+void XKeyInjector_grabKeyboard(void)
+{
+    if (!c || !w || kbgrabbed) return;
+
+    xcb_grab_keyboard_reply_t *kr = xcb_grab_keyboard_reply(c,
+	    xcb_grab_keyboard(c, 1, w, XCB_CURRENT_TIME,
+		XCB_GRAB_MODE_ASYNC, XCB_GRAB_MODE_ASYNC), 0);
+    if (kr)
+    {
+	if (kr->status == XCB_GRAB_STATUS_SUCCESS) kbgrabbed = 1;
+	free(kr);
+    }
+}
+
+void XKeyInjector_ungrabKeyboard(void)
+{
+    if (!c || !kbgrabbed) return;
+
+    xcb_generic_error_t *error = xcb_request_check(c, xcb_ungrab_keyboard(
+		c, XCB_CURRENT_TIME));
+    if (error) free(error);
+    else kbgrabbed = 0;
 }

@@ -8,6 +8,7 @@ EmojiButton::EmojiButton(QWidget *parent, const Emoji *emoji) :
     QLabel(parent), _emoji(emoji)
 {
     setText("xx");
+    if (!emoji) hide();
 }
 
 const Emoji *EmojiButton::emoji() const
@@ -15,8 +16,17 @@ const Emoji *EmojiButton::emoji() const
     return _emoji;
 }
 
+void EmojiButton::setEmoji(const Emoji *emoji)
+{
+    _emoji = emoji;
+    hide();
+    setToolTip(QString());
+    if (emoji) show();
+}
+
 void EmojiButton::showEvent(QShowEvent *ev)
 {
+    if (!_emoji) return;
     if (toolTip().isEmpty())
     {
 	setText(QString::fromUcs4(Emoji_codepoints(_emoji)));

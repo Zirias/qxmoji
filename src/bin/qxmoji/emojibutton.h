@@ -20,6 +20,7 @@ class EmojiButton: public QLabel
     public:
 	EmojiButton(QWidget *parent, const Emoji *emoji);
 	const Emoji *emoji() const;
+	void setEmoji(const Emoji *emoji);
 
     signals:
 	void clicked();

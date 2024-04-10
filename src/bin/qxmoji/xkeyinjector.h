@@ -8,7 +8,10 @@
 C_CLASS_DECL(Emoji);
 
 DECLEXPORT void XKeyInjector_setConnection(xcb_connection_t *conn);
+DECLEXPORT void XKeyInjector_setGrabWindow(unsigned id);
 DECLEXPORT void XKeyInjector_setWaitMs(int ms);
 DECLEXPORT void XKeyInjector_inject(const Emoji *emoji) ATTR_NONNULL((1));
+DECLEXPORT void XKeyInjector_grabKeyboard(void);
+DECLEXPORT void XKeyInjector_ungrabKeyboard(void);
 
 #endif

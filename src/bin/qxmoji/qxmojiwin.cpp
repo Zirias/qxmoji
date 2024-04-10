@@ -3,7 +3,9 @@
 #include "emoji.h"
 #include "emojibutton.h"
 #include "emojifont.h"
+#include "emojisearch.h"
 #include "flowlayout.h"
+#include "searchfield.h"
 
 #include <QAction>
 #include <QContextMenuEvent>
@@ -12,6 +14,7 @@
 #include <QScrollArea>
 #include <QTabBar>
 #include <QTabWidget>
+#include <QVBoxLayout>
 
 class QXmojiWinPrivate {
     Q_DISABLE_COPY(QXmojiWinPrivate)
@@ -20,6 +23,8 @@ class QXmojiWinPrivate {
 
     QAction settings;
     QAction exit;
+    SearchField search;
+    FlowLayout *results;
 
     QXmojiWinPrivate(QXmojiWin *);
 };
@@ -42,6 +47,30 @@ QXmojiWin::QXmojiWin(const EmojiFont *font) :
 	    tabs->tabBar()->setFont(font->font()); });
 
     int i = 0;
+    QWidget *searchTab = new QWidget(tabs);
+    QVBoxLayout *searchLayout = new QVBoxLayout(searchTab);
+    searchLayout->setContentsMargins(0, 0, 0, 0);
+    searchLayout->addWidget(&d_ptr->search);
+    QScrollArea *searchArea = new QScrollArea(searchTab);
+    QWidget *searchResults = new QWidget(searchArea);
+    d_ptr->results = new FlowLayout(searchResults);
+    for (int i = 0; i < EMOJISEARCH_MAXRESULTS; ++i)
+    {
+	EmojiButton *button = new EmojiButton(nullptr, nullptr);
+	button->setFont(font->font());
+	connect(button, &EmojiButton::clicked, [this, button](){
+		emit clicked(button); });
+	connect(font, &EmojiFont::fontChanged, [font, button](){
+		button->setFont(font->font()); });
+	d_ptr->results->addWidget(button);
+    }
+    searchResults->setLayout(d_ptr->results);
+    searchArea->setWidget(searchResults);
+    searchArea->setWidgetResizable(true);
+    searchLayout->addWidget(searchArea);
+    searchTab->setLayout(searchLayout);
+    tabs->addTab(searchTab, QString::fromUcs4(U"\x1f50d"));
+    tabs->setTabToolTip(i++, "Search");
     for (const EmojiGroup *group = emojigroups; group;
 	    group = EmojiGroup_next(group))
     {
@@ -66,6 +95,7 @@ QXmojiWin::QXmojiWin(const EmojiFont *font) :
 		    Emoji_codepoints(EmojiGroup_emojis(group))));
 	tabs->setTabToolTip(i++, EmojiGroup_name(group));
     }
+    tabs->setCurrentIndex(1);
 
     QHBoxLayout *box = new QHBoxLayout();
     box->setContentsMargins(0, 0, 0, 0);
@@ -76,6 +106,35 @@ QXmojiWin::QXmojiWin(const EmojiFont *font) :
 	    emit settings(); });
     connect(&d_ptr->exit, &QAction::triggered, [this](){
 	    emit exit(); });
+    connect(&d_ptr->search, &SearchField::activated, [this](){
+	    emit grab(); });
+    connect(&d_ptr->search, &SearchField::left, [this](){
+	    emit ungrab(); });
+    connect(&d_ptr->search, &QLineEdit::textEdited,
+	    [this](const QString &text){
+		int i = 0;
+		if (text.length() >= 2)
+		{
+		    const char *pat = text.toLocal8Bit().constData();
+		    const Emoji **res = Emoji_search(pat);
+		    while (*res && i < EMOJISEARCH_MAXRESULTS)
+		    {
+			EmojiButton *b = static_cast<EmojiButton *>(
+				d_ptr->results->itemAt(i)->widget());
+			b->setEmoji(*res);
+			++i;
+			++res;
+		    }
+		}
+		while (i < EMOJISEARCH_MAXRESULTS)
+		{
+		    EmojiButton *b = static_cast<EmojiButton *>(
+			    d_ptr->results->itemAt(i)->widget());
+		    if (!b->emoji()) break;
+		    b->setEmoji(nullptr);
+		    ++i;
+		}
+	    });
 }
 
 QXmojiWin::~QXmojiWin() {}

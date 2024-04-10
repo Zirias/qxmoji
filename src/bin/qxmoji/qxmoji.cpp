@@ -52,6 +52,10 @@ QXmoji::QXmoji(int &argc, char **argv) :
 {
     connect(&d_ptr->win, &QXmojiWin::clicked, [](const EmojiButton *b){
 	    XKeyInjector_inject(b->emoji()); });
+    connect(&d_ptr->win, &QXmojiWin::grab, [](){
+	    XKeyInjector_grabKeyboard(); });
+    connect(&d_ptr->win, &QXmojiWin::ungrab, [](){
+	    XKeyInjector_ungrabKeyboard(); });
     connect(&d_ptr->win, &QXmojiWin::settings,
 	    &d_ptr->settingsDlg, &QWidget::show);
     connect(&d_ptr->win, &QXmojiWin::exit, QApplication::quit);
@@ -79,6 +83,7 @@ void QXmoji::show()
 	d->win.resize(size.toSize());
     }
     d->win.show();
+    XKeyInjector_setGrabWindow(d->win.effectiveWinId());
 }
 
 QXmoji::~QXmoji() {}
