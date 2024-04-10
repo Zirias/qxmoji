@@ -2,6 +2,7 @@
 
 #include "emojibutton.h"
 #include "emojifont.h"
+#include "emojihistory.h"
 #include "qxmojiwin.h"
 #include "settingsdlg.h"
 #include "xkeyinjector.h"
@@ -44,6 +45,8 @@ QXmojiPrivate::QXmojiPrivate(QXmoji *app) :
     if (waitMs > 500) waitMs = 500;
     XKeyInjector_setWaitMs(waitMs);
     settingsDlg.setWaitMs(waitMs);
+    QByteArray history = settings.value("history", QByteArray()).toByteArray();
+    Emoji_loadHistory(history.length(), history);
 }
 
 QXmoji::QXmoji(int &argc, char **argv) :
@@ -59,8 +62,14 @@ QXmoji::QXmoji(int &argc, char **argv) :
     connect(&d_ptr->win, &QXmojiWin::settings,
 	    &d_ptr->settingsDlg, &QWidget::show);
     connect(&d_ptr->win, &QXmojiWin::exit, QApplication::quit);
-    connect(&d_ptr->win, &QXmojiWin::closing, [this](){
-	    d_ptr->settings.setValue("size", d_ptr->win.size()); });
+    connect(&d_ptr->win, &QXmojiWin::closing,
+	    [this](){
+		d_ptr->settings.setValue("size", d_ptr->win.size());
+		size_t historysz;
+		const void *historybytes = Emoji_saveHistory(&historysz);
+		QByteArray history((const char *)historybytes, historysz);
+		d_ptr->settings.setValue("history", history);
+	    });
     connect(&d_ptr->settingsDlg, &SettingsDlg::scaleChanged,
 	    &d_ptr->font, &EmojiFont::setScale);
     connect(&d_ptr->settingsDlg, &SettingsDlg::scaleChanged,

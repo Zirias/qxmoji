@@ -3,6 +3,7 @@ qxmoji_USES=		qt
 qxmoji_USE_QT=		Core Gui Widgets
 qxmoji_USE_QT5=		X11Extras
 qxmoji_MODULES=		emoji \
+			emojihistory \
 			emojisearch \
 			xkeyinjector
 qxmoji_CXXMODULES=	flowlayout \

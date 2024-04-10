@@ -3,6 +3,7 @@
 #include "emoji.h"
 #include "emojibutton.h"
 #include "emojifont.h"
+#include "emojihistory.h"
 #include "emojisearch.h"
 #include "flowlayout.h"
 #include "searchfield.h"
@@ -25,8 +26,10 @@ class QXmojiWinPrivate {
     QAction exit;
     SearchField search;
     FlowLayout *results;
+    FlowLayout *history;
 
     QXmojiWinPrivate(QXmojiWin *);
+    void emojiClicked(const EmojiButton *button);
 };
 
 QXmojiWinPrivate::QXmojiWinPrivate(QXmojiWin *win) :
@@ -34,6 +37,20 @@ QXmojiWinPrivate::QXmojiWinPrivate(QXmojiWin *win) :
     settings("&Settings"),
     exit("E&xit")
 {}
+
+void QXmojiWinPrivate::emojiClicked(const EmojiButton *button)
+{
+    Q_Q(QXmojiWin);
+    emit q->clicked(button);
+    Emoji_use(button->emoji());
+    const Emoji **h = Emoji_history();
+    for (int i = 0; i < EMOJIHISTORY_MAXLEN; ++i)
+    {
+	EmojiButton *hb = static_cast<EmojiButton *>(
+		history->itemAt(i)->widget());
+	hb->setEmoji(h[i]);
+    }
+}
 
 QXmojiWin::QXmojiWin(const EmojiFont *font) :
     QWidget(nullptr, Qt::WindowDoesNotAcceptFocus),
@@ -56,10 +73,10 @@ QXmojiWin::QXmojiWin(const EmojiFont *font) :
     d_ptr->results = new FlowLayout(searchResults);
     for (int i = 0; i < EMOJISEARCH_MAXRESULTS; ++i)
     {
-	EmojiButton *button = new EmojiButton(nullptr, nullptr);
+	EmojiButton *button = new EmojiButton(searchResults, nullptr);
 	button->setFont(font->font());
 	connect(button, &EmojiButton::clicked, [this, button](){
-		emit clicked(button); });
+		d_ptr->emojiClicked(button); });
 	connect(font, &EmojiFont::fontChanged, [font, button](){
 		button->setFont(font->font()); });
 	d_ptr->results->addWidget(button);
@@ -71,6 +88,16 @@ QXmojiWin::QXmojiWin(const EmojiFont *font) :
     searchTab->setLayout(searchLayout);
     tabs->addTab(searchTab, QString::fromUcs4(U"\x1f50d"));
     tabs->setTabToolTip(i++, "Search");
+
+    QScrollArea *historyArea = new QScrollArea(tabs);
+    QWidget *historyPane = new QWidget(historyArea);
+    d_ptr->history = new FlowLayout(historyPane);
+    historyPane->setLayout(d_ptr->history);
+    historyArea->setWidget(historyPane);
+    historyArea->setWidgetResizable(true);
+    tabs->addTab(historyArea, QString::fromUtf16(u"\x23f3"));
+    tabs->setTabToolTip(i++, "History");
+
     for (const EmojiGroup *group = emojigroups; group;
 	    group = EmojiGroup_next(group))
     {
@@ -83,7 +110,7 @@ QXmojiWin::QXmojiWin(const EmojiFont *font) :
 	    EmojiButton *button = new EmojiButton(emojis, emoji);
 	    button->setFont(font->font());
 	    connect(button, &EmojiButton::clicked, [this, button](){
-		    emit clicked(button); });
+		    d_ptr->emojiClicked(button); });
 	    connect(font, &EmojiFont::fontChanged, [font, button](){
 		    button->setFont(font->font()); });
 	    layout->addWidget(button);
@@ -135,6 +162,20 @@ QXmojiWin::QXmojiWin(const EmojiFont *font) :
 		    ++i;
 		}
 	    });
+    connect(this, &QXmojiWin::showing, [this, historyPane, font]() {
+		const Emoji **history = Emoji_history();
+		for (int i = 0; i < EMOJIHISTORY_MAXLEN; ++i)
+		{
+		    EmojiButton *button = new EmojiButton(historyPane,
+			    history[i]);
+		    button->setFont(font->font());
+		    connect(button, &EmojiButton::clicked, [this, button](){
+			    d_ptr->emojiClicked(button); });
+		    connect(font, &EmojiFont::fontChanged, [font, button](){
+			    button->setFont(font->font()); });
+		    d_ptr->history->addWidget(button);
+		}
+	    });
 }
 
 QXmojiWin::~QXmojiWin() {}
@@ -153,3 +194,11 @@ void QXmojiWin::contextMenuEvent(QContextMenuEvent *ev)
     menu.addAction(&d->exit);
     menu.exec(ev->globalPos());
 }
+
+void QXmojiWin::showEvent(QShowEvent *ev)
+{
+    Q_D(QXmojiWin);
+    if (d->history->count() == 0) emit showing();
+    QWidget::showEvent(ev);
+}
+

@@ -10,6 +10,7 @@ class EmojiButton;
 class EmojiFont;
 class QCloseEvent;
 class QContextMenuEvent;
+class QShowEvent;
 
 class QXmojiWinPrivate;
 class QXmojiWin: public QWidget
@@ -25,11 +26,13 @@ class QXmojiWin: public QWidget
     protected:
 	void closeEvent(QCloseEvent *ev) override;
 	void contextMenuEvent(QContextMenuEvent *ev) override;
+	void showEvent(QShowEvent *ev) override;
 
     signals:
 	void clicked(const EmojiButton *button);
 	void grab();
 	void ungrab();
+	void showing();
 	void closing();
 	void settings();
 	void exit();
