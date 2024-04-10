@@ -66,7 +66,7 @@ void XKeyInjector_inject(const Emoji *emoji)
 	}
     }
 
-    if ((error = xcb_request_check(c, xcb_change_keyboard_mapping(
+    if ((error = xcb_request_check(c, xcb_change_keyboard_mapping_checked(
 		c, len, s->min_keycode, kmap->keysyms_per_keycode,
 		syms))))
     {
@@ -77,7 +77,7 @@ void XKeyInjector_inject(const Emoji *emoji)
 
     for (size_t x = 0; x < len; ++x)
     {
-	if ((error = xcb_request_check(c, xcb_test_fake_input(c,
+	if ((error = xcb_request_check(c, xcb_test_fake_input_checked(c,
 			    XCB_KEY_PRESS, s->min_keycode + x,
 			    XCB_CURRENT_TIME, XCB_NONE, 0, 0, 0))))
 	{
@@ -85,7 +85,7 @@ void XKeyInjector_inject(const Emoji *emoji)
 	    free(error);
 	    goto done;
 	}
-	if ((error = xcb_request_check(c, xcb_test_fake_input(c,
+	if ((error = xcb_request_check(c, xcb_test_fake_input_checked(c,
 			    XCB_KEY_RELEASE, s->min_keycode + x,
 			    XCB_CURRENT_TIME, XCB_NONE, 0, 0, 0))))
 	{
@@ -104,7 +104,7 @@ void XKeyInjector_inject(const Emoji *emoji)
 	nanosleep(&ts, &ts);
     }
 
-    if ((error = xcb_request_check(c, xcb_change_keyboard_mapping(
+    if ((error = xcb_request_check(c, xcb_change_keyboard_mapping_checked(
 		c, len, s->min_keycode, kmap->keysyms_per_keycode,
 		(xcb_keysym_t*)(kmap + 1)))))
     {
@@ -136,8 +136,8 @@ void XKeyInjector_ungrabKeyboard(void)
 {
     if (!c || !kbgrabbed) return;
 
-    xcb_generic_error_t *error = xcb_request_check(c, xcb_ungrab_keyboard(
-		c, XCB_CURRENT_TIME));
+    xcb_generic_error_t *error = xcb_request_check(c,
+	    xcb_ungrab_keyboard_checked(c, XCB_CURRENT_TIME));
     if (error) free(error);
     else kbgrabbed = 0;
 }
