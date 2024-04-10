@@ -9,6 +9,16 @@ Emoji` font for that, falling back to `Noto Emoji` and then to whatever is
 configured as the default font. So, for best visual results, install `Noto
 Color Emoji`.
 
+## Features
+
+* Works with "plain" X11 events, so it can send emojis to any window,
+  independent of toolkits like GTK or Qt.
+* Search (as you type) for an emoji by its (english) name. The search box
+  temporarily grabs the keyboard to allow typing and immediately releases it
+  again when the mouse pointer leaves it.
+* Maintains a history of the 100 least recently used emojis, this list is
+  automatically persisted.
+
 ## How it works
 
 X11 has no concept of "Unicode keyboard events" like e.g. Windows has.
