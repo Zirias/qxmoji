@@ -5,6 +5,7 @@
 SearchField::SearchField() : QLineEdit()
 {
     setPlaceholderText("Click to type and search ...");
+    setClearButtonEnabled(true);
 }
 
 void SearchField::mousePressEvent(QMouseEvent *ev)
