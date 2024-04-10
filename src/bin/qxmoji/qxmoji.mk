@@ -1,4 +1,4 @@
-qxmoji_VERSION=		0.3
+qxmoji_VERSION=		0.4
 qxmoji_USES=		qt
 qxmoji_USE_QT=		Core Gui Widgets
 qxmoji_USE_QT5=		X11Extras
