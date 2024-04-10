@@ -23,18 +23,19 @@ sends key-press and key-release events for these in sequence, using the
 `Xtest` extension. Without the extension, only "synthetic" events can be sent,
 and many X11 clients would just ignore them.
 
-When the sequence is complete, it sleeps for 50 milliseconds before restoring
+When the sequence is complete, it sleeps for a short time before restoring
 the original keyboard mapping. Waiting is necessary because otherwise, the X11
 client receiving the keyboard events could update its own mapping before it is
 used to map the keyboard events still queued.
 
 ## Limitations
 
-* The time waiting before restoring the original keyboard mapping is a wild
-  guess that seems to work while testing. It could also be too short (e.g.
-  with a slower connection to the X server), so it should probably be made
-  configurable. There's unfortunately no way to know when a client processed
-  all its keyboard events, so waiting is the only option.
+* The default time (50 ms) waiting before restoring the original keyboard
+  mapping is a wild guess that seems to work while testing. It could also be
+  too short (e.g.  with a slower connection to the X server), so it's
+  configurable in the range 0 - 500 ms.  There's unfortunately no way to know
+  when a client processed all its keyboard events, so waiting is the only
+  option.
 
 * Modifier keys (like shift, alt, meta, ...) could interfer with the faked key
   press and release events. It might be possible to add code temporarily
@@ -57,8 +58,8 @@ everything needed for building.
 Dependencies:
 
 * Qt libs: `Core`, `Gui` and `Widgets`, plus `X11Extras` for Qt5
-* xcb libs: `libxct-xtest`
-* Qt's `moc` utility
+* xcb libs: `libxcb-xtest`
+* Qt's `moc` and `rcc` utilities
 * GNU make
 
 To build qXmoji with Qt6, just type
