@@ -50,6 +50,7 @@ QXmojiPrivate::QXmojiPrivate(QXmoji *app) :
     win.setWindowIcon(appIcon);
     aboutDlg.setWindowIcon(appIcon);
     settingsDlg.setWindowIcon(appIcon);
+    settingsDlg.setSingleInstance(singleInstance);
     EmojiFont::Scale scale = settings.value(
 	    "scale", EmojiFont::Scale::Small).value<EmojiFont::Scale>();
     font.setScale(scale);
@@ -87,6 +88,10 @@ QXmoji::QXmoji(int &argc, char **argv) :
 		const void *historybytes = Emoji_saveHistory(&historysz);
 		QByteArray history((const char *)historybytes, historysz);
 		d_ptr->settings.setValue("history", history);
+	    });
+    connect(&d_ptr->settingsDlg, &SettingsDlg::singleInstanceChanged,
+	    [this](bool singleInstance){
+		d_ptr->settings.setValue("singleInstance", singleInstance);
 	    });
     connect(&d_ptr->settingsDlg, &SettingsDlg::scaleChanged,
 	    &d_ptr->font, &EmojiFont::setScale);

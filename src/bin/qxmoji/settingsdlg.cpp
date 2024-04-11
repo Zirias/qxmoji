@@ -14,6 +14,8 @@ class SettingsDlgPrivate
     Q_DECLARE_PUBLIC(SettingsDlg)
     SettingsDlg *const q_ptr;
 
+    QLabel singleLabel;
+    QComboBox singleSelect;
     QLabel scaleLabel;
     QComboBox scaleSelect;
     QLabel waitLabel;
@@ -24,9 +26,19 @@ class SettingsDlgPrivate
 
 SettingsDlgPrivate::SettingsDlgPrivate(SettingsDlg *dlg) :
     q_ptr(dlg),
+    singleLabel("Instance mode:"),
     scaleLabel("Scale size:"),
     waitLabel("Keymap reset wait (ms):")
 {
+    singleLabel.setToolTip(
+	    "In \"single\" mode, only one instance of qXmoji is allowed to\n"
+	    "run per user on the local machine, and starting another one\n"
+	    "will just bring the running instance to the front.\n"
+	    "In \"multi\" mode, no checks for already running instances\n"
+	    "are done.");
+    singleSelect.setToolTip(singleLabel.toolTip());
+    singleSelect.addItem("Single", true);
+    singleSelect.addItem("Multi", false);
     scaleLabel.setToolTip("Scale up the size of displayed Emojis.\n"
 	    "Tiny means no scaling (same size as default window font)");
     scaleSelect.setToolTip(scaleLabel.toolTip());
@@ -60,6 +72,7 @@ SettingsDlg::SettingsDlg(QWidget *parent) :
     layout->getContentsMargins(&l, &t, &r, &b);
     layout->setContentsMargins(0, t, 0, b);
     layout->setLabelAlignment(Qt::AlignRight);
+    layout->addRow(&d_ptr->singleLabel, &d_ptr->singleSelect);
     layout->addRow(&d_ptr->scaleLabel, &d_ptr->scaleSelect);
     layout->addRow(&d_ptr->waitLabel, &d_ptr->waitSelect);
     settingsForm->setLayout(layout);
@@ -71,6 +84,10 @@ SettingsDlg::SettingsDlg(QWidget *parent) :
     dlgLayout->addWidget(buttons);
     setLayout(dlgLayout);
 
+    connect(&d_ptr->singleSelect, QOverload<int>::of(&QComboBox::activated),
+	    [this](){ emit singleInstanceChanged(
+		d_ptr->singleSelect.currentData().toBool());
+	    });
     connect(&d_ptr->scaleSelect, QOverload<int>::of(&QComboBox::activated),
 	    [this](){ emit scaleChanged(
 		d_ptr->scaleSelect.currentData().value<EmojiFont::Scale>());
@@ -80,6 +97,13 @@ SettingsDlg::SettingsDlg(QWidget *parent) :
 }
 
 SettingsDlg::~SettingsDlg() {}
+
+void SettingsDlg::setSingleInstance(bool singleInstance)
+{
+    Q_D(SettingsDlg);
+    int index = d->singleSelect.findData(singleInstance);
+    if (index >= 0) d->singleSelect.setCurrentIndex(index);
+}
 
 void SettingsDlg::setScale(EmojiFont::Scale scale)
 {
