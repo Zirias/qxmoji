@@ -34,6 +34,7 @@ class QXmojiWin: public QWidget
 	void ungrab();
 	void showing();
 	void closing();
+	void about();
 	void settings();
 	void exit();
 };

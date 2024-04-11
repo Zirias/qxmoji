@@ -7,7 +7,8 @@ qxmoji_MODULES=		emoji \
 			emojisearch \
 			main \
 			xkeyinjector
-qxmoji_CXXMODULES=	flowlayout \
+qxmoji_CXXMODULES=	aboutdlg \
+			flowlayout \
 			guimain
 qxmoji_MOCMODULES=	emojibutton \
 			emojifont \

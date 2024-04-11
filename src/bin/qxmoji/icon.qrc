@@ -1,5 +1,6 @@
 <!DOCTYPE RCC><RCC version="1.0">
 <qresource>
+  <file alias="icon_256.png">icons/256x256/qxmoji.png</file>
   <file alias="icon_48.png">icons/48x48/qxmoji.png</file>
   <file alias="icon_32.png">icons/32x32/qxmoji.png</file>
   <file alias="icon_16.png">icons/16x16/qxmoji.png</file>

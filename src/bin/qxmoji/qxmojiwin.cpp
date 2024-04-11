@@ -22,6 +22,7 @@ class QXmojiWinPrivate {
     Q_DECLARE_PUBLIC(QXmojiWin)
     QXmojiWin *const q_ptr;
 
+    QAction about;
     QAction settings;
     QAction exit;
     SearchField search;
@@ -34,6 +35,7 @@ class QXmojiWinPrivate {
 
 QXmojiWinPrivate::QXmojiWinPrivate(QXmojiWin *win) :
     q_ptr(win),
+    about("&About"),
     settings("&Settings"),
     exit("E&xit")
 {}
@@ -129,6 +131,8 @@ QXmojiWin::QXmojiWin(const EmojiFont *font) :
     box->addWidget(tabs);
     setLayout(box);
 
+    connect(&d_ptr->about, &QAction::triggered, [this](){
+	    emit about(); });
     connect(&d_ptr->settings, &QAction::triggered, [this](){
 	    emit settings(); });
     connect(&d_ptr->exit, &QAction::triggered, [this](){
@@ -190,6 +194,7 @@ void QXmojiWin::contextMenuEvent(QContextMenuEvent *ev)
 {
     Q_D(QXmojiWin);
     QMenu menu(this);
+    menu.addAction(&d->about);
     menu.addAction(&d->settings);
     menu.addAction(&d->exit);
     menu.exec(ev->globalPos());

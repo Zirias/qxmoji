@@ -1,5 +1,6 @@
 #include "qxmoji.h"
 
+#include "aboutdlg.h"
 #include "emojibutton.h"
 #include "emojifont.h"
 #include "emojihistory.h"
@@ -20,6 +21,7 @@ class QXmojiPrivate {
     QIcon appIcon;
     QSettings settings;
     QXmojiWin win;
+    AboutDlg aboutDlg;
     SettingsDlg settingsDlg;
     
     QXmojiPrivate(QXmoji *);
@@ -29,12 +31,14 @@ QXmojiPrivate::QXmojiPrivate(QXmoji *app) :
     q_ptr(app),
     settings(QDir::homePath() + "/.config/qxmoji.ini", QSettings::IniFormat),
     win(&font),
+    aboutDlg(&win),
     settingsDlg(&win)
 {
     appIcon.addPixmap(QPixmap(":/icon_48.png"));
     appIcon.addPixmap(QPixmap(":/icon_32.png"));
     appIcon.addPixmap(QPixmap(":/icon_16.png"));
     win.setWindowIcon(appIcon);
+    aboutDlg.setWindowIcon(appIcon);
     settingsDlg.setWindowIcon(appIcon);
     EmojiFont::Scale scale = settings.value(
 	    "scale", EmojiFont::Scale::Small).value<EmojiFont::Scale>();
@@ -59,6 +63,8 @@ QXmoji::QXmoji(int &argc, char **argv) :
 	    XKeyInjector_grabKeyboard(); });
     connect(&d_ptr->win, &QXmojiWin::ungrab, [](){
 	    XKeyInjector_ungrabKeyboard(); });
+    connect(&d_ptr->win, &QXmojiWin::about,
+	    &d_ptr->aboutDlg, &QWidget::show);
     connect(&d_ptr->win, &QXmojiWin::settings,
 	    &d_ptr->settingsDlg, &QWidget::show);
     connect(&d_ptr->win, &QXmojiWin::exit, QApplication::quit);
