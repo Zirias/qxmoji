@@ -10,9 +10,85 @@
 
 static int detach = 1;
 
+static void sighdl(int sig)
+{
+    (void)sig;
+}
+
 static void started(void)
 {
     if (detach) kill(getppid(), SIGHUP);
+}
+
+static void dodetach(void)
+{
+    if (!detach) return;
+    sigset_t sigset, oset;
+    sigemptyset(&sigset);
+    sigemptyset(&oset);
+    sigaddset(&sigset, SIGTERM);
+    sigaddset(&sigset, SIGHUP);
+    sigaddset(&sigset, SIGCHLD);
+    signal(SIGCHLD, sighdl);
+    if (sigprocmask(SIG_BLOCK, &sigset, &oset) < 0)
+    {
+	fputs("Error: failed to block signals.\n", stderr);
+	exit(EXIT_FAILURE);
+    }
+
+    pid_t pid = fork();
+    if (pid < 0)
+    {
+	fputs("Error: failed to fork() into background.\n", stderr);
+	exit(EXIT_FAILURE);
+    }
+    if (pid)
+    {
+	int signal;
+	for (;;)
+	{
+	    sigwait(&sigset, &signal);
+	    switch (signal)
+	    {
+		case SIGTERM:
+		    fputs("Error: terminated during startup.\n", stderr);
+		    exit(EXIT_FAILURE);
+
+		case SIGHUP:
+		    exit(EXIT_SUCCESS);
+
+		case SIGCHLD:
+		    if (waitpid(pid, &signal, WNOHANG) != pid)
+		    {
+			fputs("Warning: spurious SIGCHLD received.\n", stderr);
+		    }
+		    else if (WIFEXITED(signal))
+		    {
+			fputs("Error: terminated unexpectedly.\n", stderr);
+			exit(WEXITSTATUS(signal));
+		    }
+		    else if (WIFSIGNALED(signal))
+		    {
+			fprintf(stderr, "Error: terminated by signal %d.\n",
+				WTERMSIG(signal));
+			exit(EXIT_FAILURE);
+		    }
+
+		default:
+		    ;
+	    }
+	}
+    }
+    else
+    {
+	signal(SIGCHLD, SIG_DFL);
+	if (sigprocmask(SIG_SETMASK, &oset, 0) < 0)
+	{
+	    fputs("Error: failed to restore signal mask.\n", stderr);
+	    exit(EXIT_FAILURE);
+	}
+	setsid();
+    }
 }
 
 int main(int argc, char **argv)
@@ -41,40 +117,7 @@ int main(int argc, char **argv)
 	else if (!strcmp(argv[i], "-d")) detach = 0;
     }
 
-    if (detach)
-    {
-	sigset_t sigset, oset;
-	sigemptyset(&sigset);
-	sigemptyset(&oset);
-	sigaddset(&sigset, SIGTERM);
-	sigaddset(&sigset, SIGHUP);
-	sigaddset(&sigset, SIGCHLD);
-	if (sigprocmask(SIG_BLOCK, &sigset, &oset) < 0)
-	{
-	    fputs("Error: failed to block signals.\n", stderr);
-	    return EXIT_FAILURE;
-	}
-
-	pid_t pid = fork();
-	if (pid < 0)
-	{
-	    fputs("Error: failed to fork() into background.\n", stderr);
-	    return EXIT_FAILURE;
-	}
-	if (pid)
-	{
-	    int signal;
-	    sigwait(&sigset, &signal);
-	    return signal == SIGHUP ? EXIT_SUCCESS : EXIT_FAILURE;
-	}
-	else if (sigprocmask(SIG_SETMASK, &oset, 0) < 0)
-	{
-	    fputs("Error: failed to restore signal mask.\n", stderr);
-	    return EXIT_FAILURE;
-	}
-	setsid();
-    }
-
+    dodetach();
     guimain(argc, argv, started);
 }
 
