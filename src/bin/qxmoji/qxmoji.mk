@@ -5,9 +5,10 @@ qxmoji_USE_QT5=		X11Extras
 qxmoji_MODULES=		emoji \
 			emojihistory \
 			emojisearch \
+			main \
 			xkeyinjector
 qxmoji_CXXMODULES=	flowlayout \
-			main
+			guimain
 qxmoji_MOCMODULES=	emojibutton \
 			emojifont \
 			searchfield \
