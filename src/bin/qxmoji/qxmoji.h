@@ -15,6 +15,7 @@ class QXmoji: public QApplication
 	QXmoji(int &argc, char **argv);
 	~QXmoji();
 
+	bool startOk();
 	void show();
 };
 

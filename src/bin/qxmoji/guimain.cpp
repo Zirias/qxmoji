@@ -13,6 +13,11 @@ int guimain(int argc, char **argv, void (*started)())
     QCoreApplication::setApplicationVersion(QXMOJIVERSTR);
 
     QXmoji qxmoji(argc, argv);
+    if (!qxmoji.startOk())
+    {
+	started();
+	return 0;
+    }
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     if (!QX11Info::isPlatformX11()) return 1;

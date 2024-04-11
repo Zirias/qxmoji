@@ -6,6 +6,7 @@
 #include "emojihistory.h"
 #include "qxmojiwin.h"
 #include "settingsdlg.h"
+#include "singleinstance.h"
 #include "xkeyinjector.h"
 
 #include <QDir>
@@ -18,11 +19,13 @@ class QXmojiPrivate {
     QXmoji *const q_ptr;
 
     EmojiFont font;
+    SingleInstance instance;
     QIcon appIcon;
     QSettings settings;
     QXmojiWin win;
     AboutDlg aboutDlg;
     SettingsDlg settingsDlg;
+    bool startOk;
     
     QXmojiPrivate(QXmoji *);
 };
@@ -32,8 +35,15 @@ QXmojiPrivate::QXmojiPrivate(QXmoji *app) :
     settings(QDir::homePath() + "/.config/qxmoji.ini", QSettings::IniFormat),
     win(&font),
     aboutDlg(&win),
-    settingsDlg(&win)
+    settingsDlg(&win),
+    startOk(true)
 {
+    bool singleInstance = settings.value("singleInstance", true).toBool();
+    if (singleInstance)
+    {
+	if (!(startOk = instance.startInstance())) return;
+    }
+
     appIcon.addPixmap(QPixmap(":/icon_48.png"));
     appIcon.addPixmap(QPixmap(":/icon_32.png"));
     appIcon.addPixmap(QPixmap(":/icon_16.png"));
@@ -57,6 +67,8 @@ QXmoji::QXmoji(int &argc, char **argv) :
     QApplication(argc, argv),
     d_ptr(new QXmojiPrivate(this))
 {
+    if (!d_ptr->startOk) return;
+
     connect(&d_ptr->win, &QXmojiWin::clicked, [](const EmojiButton *b){
 	    XKeyInjector_inject(b->emoji()); });
     connect(&d_ptr->win, &QXmojiWin::grab, [](){
@@ -87,6 +99,20 @@ QXmoji::QXmoji(int &argc, char **argv) :
 		XKeyInjector_setWaitMs(ms);
 		d_ptr->settings.setValue("wait", ms);
 	    });
+    connect(&d_ptr->instance, &SingleInstance::secondaryInstance,
+	    [this](){
+		d_ptr->win.setWindowState(d_ptr->win.windowState()
+			& ~Qt::WindowMinimized);
+		d_ptr->win.raise();
+	    });
+}
+
+QXmoji::~QXmoji() {}
+
+bool QXmoji::startOk()
+{
+    Q_D(QXmoji);
+    return d->startOk;
 }
 
 void QXmoji::show()
@@ -100,5 +126,3 @@ void QXmoji::show()
     d->win.show();
     XKeyInjector_setGrabWindow(d->win.effectiveWinId());
 }
-
-QXmoji::~QXmoji() {}
