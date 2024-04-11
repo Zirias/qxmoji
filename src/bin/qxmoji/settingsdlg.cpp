@@ -1,10 +1,12 @@
 #include "settingsdlg.h"
 
 #include <QComboBox>
+#include <QDialogButtonBox>
 #include <QFormLayout>
 #include <QLabel>
 #include <QMetaEnum>
 #include <QSpinBox>
+#include <QVBoxLayout>
 
 class SettingsDlgPrivate
 {
@@ -52,11 +54,22 @@ SettingsDlg::SettingsDlg(QWidget *parent) :
     d_ptr(new SettingsDlgPrivate(this))
 {
     setWindowTitle("qXmoji settings");
-    QFormLayout *layout = new QFormLayout(this);
+    QWidget *settingsForm = new QWidget(this);
+    QFormLayout *layout = new QFormLayout(settingsForm);
+    int l,t,r,b;
+    layout->getContentsMargins(&l, &t, &r, &b);
+    layout->setContentsMargins(0, t, 0, b);
     layout->setLabelAlignment(Qt::AlignRight);
     layout->addRow(&d_ptr->scaleLabel, &d_ptr->scaleSelect);
     layout->addRow(&d_ptr->waitLabel, &d_ptr->waitSelect);
-    setLayout(layout);
+    settingsForm->setLayout(layout);
+
+    QVBoxLayout *dlgLayout = new QVBoxLayout(this);
+    dlgLayout->addWidget(settingsForm);
+    QDialogButtonBox *buttons = new QDialogButtonBox(QDialogButtonBox::Ok);
+    connect(buttons, &QDialogButtonBox::accepted, this, &QWidget::hide);
+    dlgLayout->addWidget(buttons);
+    setLayout(dlgLayout);
 
     connect(&d_ptr->scaleSelect, QOverload<int>::of(&QComboBox::activated),
 	    [this](){ emit scaleChanged(
