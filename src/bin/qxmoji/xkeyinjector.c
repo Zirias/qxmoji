@@ -9,7 +9,8 @@
 #include <time.h>
 #include <xcb/xtest.h>
 
-void XKeyInjector_inject(XcbAdapter *xcb, const Emoji *emoji, int waitms)
+SOLOCAL void XKeyInjector_inject(
+	XcbAdapter *xcb, const Emoji *emoji, int waitms)
 {
     xcb_connection_t *c = XcbAdapter_connection(xcb);
     const xcb_setup_t *s = xcb_get_setup(c);

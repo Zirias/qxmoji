@@ -9,12 +9,12 @@
 static const Emoji *history[EMOJIHISTORY_MAXLEN];
 static unsigned char buffer[SAVEBUFSZ];
 
-const Emoji **Emoji_history(void)
+SOLOCAL const Emoji **Emoji_history(void)
 {
     return history;
 }
 
-void Emoji_use(const Emoji *emoji)
+SOLOCAL void Emoji_use(const Emoji *emoji)
 {
     int oldpos = -1;
     for (int i = 0; i < EMOJIHISTORY_MAXLEN; ++i)
@@ -31,7 +31,7 @@ void Emoji_use(const Emoji *emoji)
     *history = emoji;
 }
 
-const void *Emoji_saveHistory(size_t *sz)
+SOLOCAL const void *Emoji_saveHistory(size_t *sz)
 {
     *sz = 0;
     const Emoji **h = history;
@@ -56,7 +56,7 @@ const void *Emoji_saveHistory(size_t *sz)
     return buffer;
 }
 
-void Emoji_loadHistory(size_t sz, const void *data)
+SOLOCAL void Emoji_loadHistory(size_t sz, const void *data)
 {
     if (sz & 3) return;
     const unsigned char *buf = data;

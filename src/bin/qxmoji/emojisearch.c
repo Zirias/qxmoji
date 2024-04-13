@@ -21,7 +21,7 @@ static void takelower(char *buf, const char *str)
     buf[i] = 0;
 }
 
-const Emoji **Emoji_search(const char *pattern)
+SOLOCAL const Emoji **Emoji_search(const char *pattern)
 {
     int nresults = 0;
 
