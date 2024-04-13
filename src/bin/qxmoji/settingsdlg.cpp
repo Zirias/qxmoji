@@ -16,6 +16,8 @@ class SettingsDlgPrivate
 
     QLabel singleLabel;
     QComboBox singleSelect;
+    QLabel trayLabel;
+    QComboBox traySelect;
     QLabel scaleLabel;
     QComboBox scaleSelect;
     QLabel waitLabel;
@@ -27,6 +29,7 @@ class SettingsDlgPrivate
 SettingsDlgPrivate::SettingsDlgPrivate(SettingsDlg *dlg) :
     q_ptr(dlg),
     singleLabel("Instance mode:"),
+    trayLabel("Tray mode:"),
     scaleLabel("Scale size:"),
     waitLabel("Keymap reset wait (ms):")
 {
@@ -39,6 +42,17 @@ SettingsDlgPrivate::SettingsDlgPrivate(SettingsDlg *dlg) :
     singleSelect.setToolTip(singleLabel.toolTip());
     singleSelect.addItem("Single", true);
     singleSelect.addItem("Multi", false);
+    trayLabel.setToolTip(
+	    "Disabled: Do not use a tray icon.\n"
+	    "Enabled: Use a tray icon, qXmoji keeps running on window close.\n"
+	    "Minimize: Use a tray icon with \"minimize to tray\", closing\n"
+	    "the window still exits.");
+    traySelect.setToolTip(trayLabel.toolTip());
+    QMetaEnum trayEnum = QMetaEnum::fromType<QXmoji::TrayMode>();
+    for (int i = 0; i < trayEnum.keyCount(); ++i)
+    {
+	traySelect.addItem(trayEnum.key(i), trayEnum.value(i));
+    }
     scaleLabel.setToolTip("Scale up the size of displayed Emojis.\n"
 	    "Tiny means no scaling (same size as default window font)");
     scaleSelect.setToolTip(scaleLabel.toolTip());
@@ -73,6 +87,7 @@ SettingsDlg::SettingsDlg(QWidget *parent) :
     layout->setContentsMargins(0, t, 0, b);
     layout->setLabelAlignment(Qt::AlignRight);
     layout->addRow(&d_ptr->singleLabel, &d_ptr->singleSelect);
+    layout->addRow(&d_ptr->trayLabel, &d_ptr->traySelect);
     layout->addRow(&d_ptr->scaleLabel, &d_ptr->scaleSelect);
     layout->addRow(&d_ptr->waitLabel, &d_ptr->waitSelect);
     settingsForm->setLayout(layout);
@@ -87,6 +102,10 @@ SettingsDlg::SettingsDlg(QWidget *parent) :
     connect(&d_ptr->singleSelect, QOverload<int>::of(&QComboBox::activated),
 	    [this](){ emit singleInstanceChanged(
 		d_ptr->singleSelect.currentData().toBool());
+	    });
+    connect(&d_ptr->traySelect, QOverload<int>::of(&QComboBox::activated),
+	    [this](){ emit trayModeChanged(
+		d_ptr->traySelect.currentData().value<QXmoji::TrayMode>());
 	    });
     connect(&d_ptr->scaleSelect, QOverload<int>::of(&QComboBox::activated),
 	    [this](){ emit scaleChanged(
@@ -103,6 +122,13 @@ void SettingsDlg::setSingleInstance(bool singleInstance)
     Q_D(SettingsDlg);
     int index = d->singleSelect.findData(singleInstance);
     if (index >= 0) d->singleSelect.setCurrentIndex(index);
+}
+
+void SettingsDlg::setTrayMode(QXmoji::TrayMode mode)
+{
+    Q_D(SettingsDlg);
+    int index = d->traySelect.findData(mode);
+    if (index >= 0) d->traySelect.setCurrentIndex(index);
 }
 
 void SettingsDlg::setScale(EmojiFont::Scale scale)

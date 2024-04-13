@@ -3,15 +3,11 @@
 
 #include "decl.h"
 
-#include <xcb/xcb.h>
-
 C_CLASS_DECL(Emoji);
+C_CLASS_DECL(XcbAdapter);
 
-DECLEXPORT void XKeyInjector_setConnection(xcb_connection_t *conn);
-DECLEXPORT void XKeyInjector_setGrabWindow(unsigned id);
-DECLEXPORT void XKeyInjector_setWaitMs(int ms);
-DECLEXPORT void XKeyInjector_inject(const Emoji *emoji) ATTR_NONNULL((1));
-DECLEXPORT void XKeyInjector_grabKeyboard(void);
-DECLEXPORT void XKeyInjector_ungrabKeyboard(void);
+DECLEXPORT void XKeyInjector_inject(
+	XcbAdapter *xcb, const Emoji *emoji, int waitms)
+    ATTR_NONNULL((1)) ATTR_NONNULL((2));
 
 #endif

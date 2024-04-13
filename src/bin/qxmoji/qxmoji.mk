@@ -6,6 +6,7 @@ qxmoji_MODULES=		emoji \
 			emojihistory \
 			emojisearch \
 			main \
+			xcbadapter \
 			xkeyinjector
 qxmoji_CXXMODULES=	aboutdlg \
 			flowlayout \

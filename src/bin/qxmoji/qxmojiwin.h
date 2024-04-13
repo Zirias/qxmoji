@@ -6,10 +6,18 @@
 #include <QScopedPointer>
 #include <QWidget>
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
+#define qtnativeres long
+#else
+#define qtnativeres qintptr
+#endif
+
 class EmojiButton;
 class EmojiFont;
+class QByteArray;
 class QCloseEvent;
 class QContextMenuEvent;
+class QMenu;
 class QShowEvent;
 
 class QXmojiWinPrivate;
@@ -20,23 +28,23 @@ class QXmojiWin: public QWidget
 	QScopedPointer<QXmojiWinPrivate> const d_ptr;
 
     public:
-	QXmojiWin(const EmojiFont *font);
+	QXmojiWin(QMenu *contextMenu, const EmojiFont *font);
 	~QXmojiWin();
+
+	void setCloseOnMinimize(bool close);
+	void setHideInTaskbar(bool hide);
 
     protected:
 	void closeEvent(QCloseEvent *ev) override;
 	void contextMenuEvent(QContextMenuEvent *ev) override;
 	void showEvent(QShowEvent *ev) override;
+	bool nativeEvent(const QByteArray &eventType, void *message,
+		qtnativeres *result) override;
 
     signals:
 	void clicked(const EmojiButton *button);
-	void grab();
-	void ungrab();
-	void showing();
-	void closing();
-	void about();
-	void settings();
-	void exit();
+	void closing(bool minimize);
+	void closed(bool minimize);
 };
 
 #endif

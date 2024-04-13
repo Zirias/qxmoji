@@ -1,8 +1,12 @@
 #ifndef QXMOJI_QXMOJI_H
 #define QXMOJI_QXMOJI_H
 
+#include "decl.h"
+
 #include <QApplication>
 #include <QScopedPointer>
+
+C_CLASS_DECL(XcbAdapter);
 
 class QXmojiPrivate;
 class QXmoji: public QApplication
@@ -15,8 +19,14 @@ class QXmoji: public QApplication
 	QXmoji(int &argc, char **argv);
 	~QXmoji();
 
+	enum TrayMode { Disabled, Enabled, Minimize };
+	Q_ENUM(TrayMode)
+
 	bool startOk();
+	XcbAdapter *xcb();
 	void show();
 };
+
+#define qXm (reinterpret_cast<QXmoji *>(qApp))
 
 #endif
