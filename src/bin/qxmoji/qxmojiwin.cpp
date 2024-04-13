@@ -184,6 +184,7 @@ void QXmojiWin::setHideInTaskbar(bool hide)
     Q_D(QXmojiWin);
     if (hide == d->hideInTaskbar) return;
     d->hideInTaskbar = hide;
+    setAttribute(Qt::WA_X11NetWmWindowTypeUtility, hide);
     XcbAdapter_setSkipTaskbar(qXm->xcb(), winId(), hide);
 }
 
@@ -218,6 +219,7 @@ void QXmojiWin::showEvent(QShowEvent *ev)
 	    d->history->addWidget(button);
 	}
     }
+    setAttribute(Qt::WA_X11NetWmWindowTypeUtility, d->hideInTaskbar);
     XcbAdapter_setSkipTaskbar(qXm->xcb(), winId(), d->hideInTaskbar);
     QWidget::showEvent(ev);
     d->closeIsMinimize = false;
