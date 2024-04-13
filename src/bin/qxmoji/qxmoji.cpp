@@ -148,6 +148,7 @@ QXmoji::QXmoji(int &argc, char **argv) :
 		const void *historybytes = Emoji_saveHistory(&historysz);
 		QByteArray history((const char *)historybytes, historysz);
 		d_ptr->settings.setValue("history", history);
+		d_ptr->settings.setValue("shown", false);
 	    });
     connect(&d_ptr->win, &QXmojiWin::closed,
 	    [this](bool minimize){
@@ -197,6 +198,7 @@ QXmoji::QXmoji(int &argc, char **argv) :
 		d_ptr->settings.setValue("wait", ms);
 	    });
     auto showandraise = [this](){
+	    d_ptr->settings.setValue("shown", true);
 	    if (!d_ptr->win.isVisible()) d_ptr->win.show();
 	    d_ptr->win.setWindowState(d_ptr->win.windowState()
 		    & ~Qt::WindowMinimized);
@@ -232,5 +234,11 @@ void QXmoji::show()
     {
 	d->win.resize(size.toSize());
     }
-    d->win.show();
+    bool shown = d->settings.value("shown", true).toBool();
+    if (shown || d->mode == TrayMode::Disabled ||
+	    !QSystemTrayIcon::isSystemTrayAvailable())
+    {
+	d->settings.setValue("shown", true);
+	d->win.show();
+    }
 }
