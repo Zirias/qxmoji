@@ -26,6 +26,7 @@ class QXmojiWinPrivate {
     Q_DECLARE_PUBLIC(QXmojiWin)
     QXmojiWin *const q_ptr;
 
+    QPoint pos;
     SearchField search;
     const EmojiFont *font;
     FlowLayout *results;
@@ -42,6 +43,7 @@ class QXmojiWinPrivate {
 QXmojiWinPrivate::QXmojiWinPrivate(QXmojiWin *win, const EmojiFont *font,
 	QMenu *contextMenu) :
     q_ptr(win),
+    pos(-1, -1),
     font(font),
     contextMenu(contextMenu),
     closeOnMinimize(false),
@@ -192,6 +194,7 @@ void QXmojiWin::closeEvent(QCloseEvent *ev)
 {
     Q_D(QXmojiWin);
     emit closing(d->closeIsMinimize);
+    d->pos = pos();
     QWidget::closeEvent(ev);
     emit closed(d->closeIsMinimize);
 }
@@ -222,6 +225,7 @@ void QXmojiWin::showEvent(QShowEvent *ev)
     setAttribute(Qt::WA_X11NetWmWindowTypeUtility, d->hideInTaskbar);
     XcbAdapter_setSkipTaskbar(qXm->xcb(), winId(), d->hideInTaskbar);
     QWidget::showEvent(ev);
+    if (d->pos != QPoint(-1, -1)) move(d->pos);
     d->closeIsMinimize = false;
 }
 
