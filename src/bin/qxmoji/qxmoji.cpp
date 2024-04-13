@@ -141,14 +141,12 @@ QXmoji::QXmoji(int &argc, char **argv) :
     connect(&d_ptr->exitAct, &QAction::triggered, qApp,
 	    &QCoreApplication::quit, Qt::QueuedConnection);
     connect(&d_ptr->win, &QXmojiWin::closing,
-	    [this](bool minimize){
-		(void)minimize;
+	    [this](){
 		d_ptr->settings.setValue("size", d_ptr->win.size());
 		size_t historysz;
 		const void *historybytes = Emoji_saveHistory(&historysz);
 		QByteArray history((const char *)historybytes, historysz);
 		d_ptr->settings.setValue("history", history);
-		d_ptr->settings.setValue("shown", false);
 	    });
     connect(&d_ptr->win, &QXmojiWin::closed,
 	    [this](bool minimize){
@@ -161,10 +159,12 @@ QXmoji::QXmoji(int &argc, char **argv) :
 
 		    case TrayMode::Enabled:
 			if (!haveTray) quit();
+			else d_ptr->settings.setValue("shown", false);
 			break;
 
 		    case TrayMode::Minimize:
 			if (!minimize || !haveTray) quit();
+			else d_ptr->settings.setValue("shown", false);
 			break;
 		}
 	    });
