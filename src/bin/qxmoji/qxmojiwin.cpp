@@ -20,6 +20,7 @@
 #include <QTabBar>
 #include <QTabWidget>
 #include <QVBoxLayout>
+#include <QWindow>
 
 class QXmojiWinPrivate {
     Q_DISABLE_COPY(QXmojiWinPrivate)
@@ -194,7 +195,7 @@ void QXmojiWin::closeEvent(QCloseEvent *ev)
 {
     Q_D(QXmojiWin);
     emit closing(d->closeIsMinimize);
-    d->pos = pos();
+    d->pos = windowHandle()->position();
     QWidget::closeEvent(ev);
     emit closed(d->closeIsMinimize);
 }
@@ -224,8 +225,8 @@ void QXmojiWin::showEvent(QShowEvent *ev)
     }
     setAttribute(Qt::WA_X11NetWmWindowTypeUtility, d->hideInTaskbar);
     XcbAdapter_setSkipTaskbar(qXm->xcb(), winId(), d->hideInTaskbar);
+    if (d->pos != QPoint(-1, -1)) windowHandle()->setPosition(d->pos);
     QWidget::showEvent(ev);
-    if (d->pos != QPoint(-1, -1)) move(d->pos);
     d->closeIsMinimize = false;
 }
 
