@@ -30,6 +30,7 @@ class QXmojiPrivate {
     XcbAdapter *xcb;
     EmojiFont font;
     SingleInstance instance;
+    QAction showAct;
     QAction aboutAct;
     QAction settingsAct;
     QAction exitAct;
@@ -53,6 +54,7 @@ public:
 QXmojiPrivate::QXmojiPrivate(QXmoji *app) :
     q_ptr(app),
     xcb(0),
+    showAct("Show &Window"),
     aboutAct("&About"),
     settingsAct("&Settings"),
     exitAct("E&xit"),
@@ -102,6 +104,8 @@ QXmojiPrivate::QXmojiPrivate(QXmoji *app) :
     settingsDlg.setWaitMs(waitms);
     QByteArray history = settings.value("history", QByteArray()).toByteArray();
     Emoji_loadHistory(history.length(), history);
+    contextMenu.addAction(&showAct);
+    contextMenu.addSeparator();
     contextMenu.addAction(&aboutAct);
     contextMenu.addAction(&settingsAct);
     contextMenu.addAction(&exitAct);
@@ -150,6 +154,7 @@ QXmoji::QXmoji(int &argc, char **argv) :
 	    });
     connect(&d_ptr->win, &QXmojiWin::closed,
 	    [this](bool minimize){
+		d_ptr->showAct.setVisible(true);
 		bool haveTray = QSystemTrayIcon::isSystemTrayAvailable();
 		switch (d_ptr->mode)
 		{
@@ -199,11 +204,13 @@ QXmoji::QXmoji(int &argc, char **argv) :
 	    });
     auto showandraise = [this](){
 	    d_ptr->settings.setValue("shown", true);
+	    d_ptr->showAct.setVisible(false);
 	    if (!d_ptr->win.isVisible()) d_ptr->win.show();
 	    d_ptr->win.setWindowState(d_ptr->win.windowState()
 		    & ~Qt::WindowMinimized);
 	    d_ptr->win.raise();
     };
+    connect(&d_ptr->showAct, &QAction::triggered, showandraise);
     connect(&d_ptr->instance, &SingleInstance::secondaryInstance,
 	    showandraise);
     connect(&d_ptr->trayIcon, &QSystemTrayIcon::activated,
@@ -239,6 +246,7 @@ void QXmoji::show()
 	    !QSystemTrayIcon::isSystemTrayAvailable())
     {
 	d->settings.setValue("shown", true);
+	d->showAct.setVisible(false);
 	d->win.show();
     }
 }
