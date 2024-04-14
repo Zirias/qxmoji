@@ -7,10 +7,7 @@ int guimain(int argc, char **argv, void (*started)())
     QCoreApplication::setApplicationName("qXmoji");
     QCoreApplication::setApplicationVersion(QXMOJIVERSTR);
 
-    QXmoji qxmoji(argc, argv);
-    started();
-    if (!qxmoji.startOk()) return 0;
-    qxmoji.show();
+    QXmoji qxmoji(argc, argv, started);
     return qxmoji.exec();
 }
 

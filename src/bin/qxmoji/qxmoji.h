@@ -16,15 +16,13 @@ class QXmoji: public QApplication
 	QScopedPointer<QXmojiPrivate> const d_ptr;
 
     public:
-	QXmoji(int &argc, char **argv);
+	QXmoji(int &argc, char **argv, void (*started)());
 	~QXmoji();
 
 	enum TrayMode { Disabled, Enabled, Minimize };
 	Q_ENUM(TrayMode)
 
-	bool startOk();
 	XcbAdapter *xcb();
-	void show();
 };
 
 #define qXm (reinterpret_cast<QXmoji *>(qApp))

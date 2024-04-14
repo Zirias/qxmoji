@@ -64,8 +64,10 @@ static void dodetach(void)
 		    }
 		    else if (WIFEXITED(signal))
 		    {
-			fputs("Error: terminated unexpectedly.\n", stderr);
-			exit(WEXITSTATUS(signal));
+			int rc = WEXITSTATUS(signal);
+			if (rc != 0) fputs(
+				"Error: failed to start.\n", stderr);
+			exit(rc);
 		    }
 		    else if (WIFSIGNALED(signal))
 		    {
@@ -118,6 +120,6 @@ int main(int argc, char **argv)
     }
 
     dodetach();
-    guimain(argc, argv, started);
+    return guimain(argc, argv, started);
 }
 

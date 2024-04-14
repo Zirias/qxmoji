@@ -43,7 +43,6 @@ class QXmojiPrivate {
     SettingsDlg settingsDlg;
     QXmoji::TrayMode mode;
     int waitms;
-    bool startOk;
     
     QXmojiPrivate(QXmoji *);
 
@@ -61,25 +60,35 @@ QXmojiPrivate::QXmojiPrivate(QXmoji *app) :
     settings(QDir::homePath() + "/.config/qxmoji.ini", QSettings::IniFormat),
     win(&contextMenu, &font),
     aboutDlg(&win),
-    settingsDlg(&win),
-    startOk(false)
+    settingsDlg(&win)
 {
+    int rc = -1;
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
-    if (!QX11Info::isPlatformX11()) return;
-    xcb = XcbAdapter_create(QX11Info::connection());
+    if (!QX11Info::isPlatformX11()) rc = 1;
+    else xcb = XcbAdapter_create(QX11Info::connection());
 #else
     auto x11app = app->nativeInterface<QNativeInterface::QX11Application>();
-    if (!x11app) return;
-    xcb = XcbAdapter_create(x11app->connection());
+    if (!x11app) rc = 1;
+    else xcb = XcbAdapter_create(x11app->connection());
 #endif
 
-    bool singleInstance = settings.value("singleInstance", true).toBool();
-    if (singleInstance)
+    bool singleInstance = false;
+    if (rc < 0)
     {
-	if (!instance.startInstance()) return;
+	singleInstance = settings.value("singleInstance", true).toBool();
+	if (singleInstance)
+	{
+	    if (!instance.startInstance()) rc = 0;
+	}
     }
-
-    startOk = true;
+    if (rc >= 0)
+    {
+	XcbAdapter_destroy(xcb);
+	xcb = 0;
+	QMetaObject::invokeMethod(app, [rc](){ QCoreApplication::exit(rc); },
+		Qt::QueuedConnection);
+	return;
+    }
 
     appIcon.addPixmap(QPixmap(":/icon_48.png"));
     appIcon.addPixmap(QPixmap(":/icon_32.png"));
@@ -116,11 +125,12 @@ QXmojiPrivate::~QXmojiPrivate()
     XcbAdapter_destroy(xcb);
 }
 
-QXmoji::QXmoji(int &argc, char **argv) :
+QXmoji::QXmoji(int &argc, char **argv, void (*started)()) :
     QApplication(argc, argv),
     d_ptr(new QXmojiPrivate(this))
 {
-    if (!d_ptr->startOk) return;
+    if (!d_ptr->xcb) return;
+    started();
 
     setQuitOnLastWindowClosed(false);
     if (d_ptr->mode != QXmoji::TrayMode::Disabled)
@@ -217,36 +227,26 @@ QXmoji::QXmoji(int &argc, char **argv) :
 	    [showandraise](QSystemTrayIcon::ActivationReason reason){
 		if (reason == QSystemTrayIcon::Trigger) showandraise();
 	    });
+
+    QVariant size = d_ptr->settings.value("size");
+    if (size.isValid())
+    {
+	d_ptr->win.resize(size.toSize());
+    }
+    bool shown = d_ptr->settings.value("shown", true).toBool();
+    if (shown || d_ptr->mode == TrayMode::Disabled ||
+	    !QSystemTrayIcon::isSystemTrayAvailable())
+    {
+	d_ptr->settings.setValue("shown", true);
+	d_ptr->showAct.setVisible(false);
+	d_ptr->win.show();
+    }
 }
 
 QXmoji::~QXmoji() {}
-
-bool QXmoji::startOk()
-{
-    Q_D(QXmoji);
-    return d->startOk;
-}
 
 XcbAdapter *QXmoji::xcb()
 {
     Q_D(QXmoji);
     return d->xcb;
-}
-
-void QXmoji::show()
-{
-    Q_D(QXmoji);
-    QVariant size = d->settings.value("size");
-    if (size.isValid())
-    {
-	d->win.resize(size.toSize());
-    }
-    bool shown = d->settings.value("shown", true).toBool();
-    if (shown || d->mode == TrayMode::Disabled ||
-	    !QSystemTrayIcon::isSystemTrayAvailable())
-    {
-	d->settings.setValue("shown", true);
-	d->showAct.setVisible(false);
-	d->win.show();
-    }
 }
