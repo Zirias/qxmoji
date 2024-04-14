@@ -31,7 +31,6 @@ void EmojiButton::showEvent(QShowEvent *ev)
     {
 	setText(QString::fromUcs4(Emoji_codepoints(_emoji)));
 	setToolTip(Emoji_name(_emoji));
-	setAutoFillBackground(true);
     }
     QWidget::showEvent(ev);
 }
@@ -44,6 +43,7 @@ void EmojiButton::enterEvent(QEnterEvent *ev)
 {
     (void) ev;
     setBackgroundRole(QPalette::Highlight);
+    setAutoFillBackground(true);
     setCursor(Qt::PointingHandCursor);
 }
 
@@ -51,6 +51,7 @@ void EmojiButton::leaveEvent(QEvent *ev)
 {
     (void) ev;
     setBackgroundRole(QPalette::NoRole);
+    setAutoFillBackground(false);
     unsetCursor();
 }
 
