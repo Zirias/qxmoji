@@ -22,6 +22,15 @@ defaults.mk
 /obj/
 /test/
 /dist/
+/tools/bin/
+/tools/*/.cfg
+/tools/*/.path-cache
+/tools/*/bin/
+/tools/*/lib/
+/tools/*/obj/
+/tools/*/test/
+/tools/*/dist/
 /src/bin/qxmoji/decl.h
 /src/bin/qxmoji/emoji.c
+/src/bin/qxmoji/emojidata.c
 /src/bin/qxmoji/qxmoji.desktop
