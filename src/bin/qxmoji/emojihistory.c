@@ -75,12 +75,13 @@ SOLOCAL void Emoji_loadHistory(size_t sz, const void *data)
 	if (!uc)
 	{
 	    const Emoji *entry = 0;
-	    for (const EmojiGroup *group = emojigroups;
-		    group && !entry; group = EmojiGroup_next(group))
+	    for (size_t i = 0; !entry && i < EmojiGroup_count(); ++i)
 	    {
-		for (const Emoji *emoji = EmojiGroup_emojis(group);
-			emoji && !entry; emoji = Emoji_next(emoji))
+		const EmojiGroup *group = EmojiGroup_at(i);
+		for (size_t j = 0;
+			!entry && j < EmojiGroup_countEmojis(group); ++j)
 		{
+		    const Emoji *emoji = EmojiGroup_emoji(group, j);
 		    const char32_t *a = pat;
 		    const char32_t *b = Emoji_codepoints(emoji);
 		    while (*a == *b)

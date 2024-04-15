@@ -3,25 +3,36 @@
 
 #include "decl.h"
 
+#include <stdlib.h>
 #include <uchar.h>
 
 C_CLASS_DECL(Emoji);
 C_CLASS_DECL(EmojiGroup);
 
-extern const EmojiGroup *emojigroups;
-
-DECLEXPORT const char *Emoji_name(const Emoji *self)
+DECLEXPORT const EmojiGroup *Emoji_group(const Emoji *self)
     CMETHOD ATTR_PURE;
 DECLEXPORT const char32_t *Emoji_codepoints(const Emoji *self)
-    CMETHOD ATTR_PURE;
-DECLEXPORT const Emoji *Emoji_next(const Emoji *self)
-    CMETHOD ATTR_PURE;
+    CMETHOD ATTR_PURE ATTR_RETNONNULL;
+DECLEXPORT const char16_t *Emoji_utf16(const Emoji *self)
+    CMETHOD ATTR_PURE ATTR_RETNONNULL;
+DECLEXPORT const char *Emoji_utf8(const Emoji *self)
+    CMETHOD ATTR_PURE ATTR_RETNONNULL;
+DECLEXPORT const char *Emoji_name(const Emoji *self)
+    CMETHOD ATTR_PURE ATTR_RETNONNULL;
+
+DECLEXPORT const Emoji *Emoji_byUtf8(const char *utf8)
+    ATTR_PURE;
 
 DECLEXPORT const char *EmojiGroup_name(const EmojiGroup *self)
     CMETHOD ATTR_PURE;
-DECLEXPORT const Emoji *EmojiGroup_emojis(const EmojiGroup *self)
+DECLEXPORT size_t EmojiGroup_countEmojis(const EmojiGroup *self)
     CMETHOD ATTR_PURE;
-DECLEXPORT const EmojiGroup *EmojiGroup_next(const EmojiGroup *self)
+DECLEXPORT const Emoji *EmojiGroup_emoji(const EmojiGroup *self, size_t i)
     CMETHOD ATTR_PURE;
+
+DECLEXPORT size_t EmojiGroup_count(void)
+    ATTR_CONST;
+DECLEXPORT const EmojiGroup *EmojiGroup_at(size_t i)
+    ATTR_PURE;
 
 #endif

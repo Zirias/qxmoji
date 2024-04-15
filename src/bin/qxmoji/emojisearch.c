@@ -26,21 +26,20 @@ SOLOCAL const Emoji **Emoji_search(const char *pattern)
     int nresults = 0;
 
     takelower(patbuf, pattern);
-    const EmojiGroup *group = emojigroups;
-    while (group)
+
+    for (size_t i = 0; i < EmojiGroup_count(); ++i)
     {
-	const Emoji *emoji = EmojiGroup_emojis(group);
-	while (emoji)
+	const EmojiGroup *group = EmojiGroup_at(i);
+	for (size_t j = 0; j < EmojiGroup_countEmojis(group); ++j)
 	{
+	    const Emoji *emoji = EmojiGroup_emoji(group, j);
 	    takelower(nmbuf, Emoji_name(emoji));
 	    if (strstr(nmbuf, patbuf))
 	    {
 		results[nresults++] = emoji;
 		if (nresults == EMOJISEARCH_MAXRESULTS) goto done;
 	    }
-	    emoji = Emoji_next(emoji);
 	}
-	group = EmojiGroup_next(group);
     }
 
 done:
