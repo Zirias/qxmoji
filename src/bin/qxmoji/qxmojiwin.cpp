@@ -5,6 +5,7 @@
 #include "emojifont.h"
 #include "emojihistory.h"
 #include "emojisearch.h"
+#include "emojistring.h"
 #include "flowlayout.h"
 #include "qxmoji.h"
 #include "searchfield.h"
@@ -14,13 +15,46 @@
 #include <QContextMenuEvent>
 #include <QHBoxLayout>
 #include <QHideEvent>
+#include <QList>
 #include <QMenu>
 #include <QScrollArea>
 #include <QShowEvent>
 #include <QTabBar>
 #include <QTabWidget>
+#include <QTimer>
 #include <QVBoxLayout>
 #include <QWindow>
+
+class InitEmojiEvent: public QEvent
+{
+	EmojiButton *_button;
+	const Emoji *_emoji;
+	InitEmojiEvent *_next;
+
+    public:
+	InitEmojiEvent(EmojiButton *button, const Emoji *emoji) :
+	    QEvent(QEvent::User), _button(button), _emoji(emoji), _next(0) {}
+
+	void setNext(InitEmojiEvent *next)
+	{
+	    _next = next;
+	}
+
+	InitEmojiEvent *next()
+	{
+	    return _next;
+	}
+
+	EmojiButton *button()
+	{
+	    return _button;
+	}
+
+	const Emoji *emoji()
+	{
+	    return _emoji;
+	}
+};
 
 class QXmojiWinPrivate {
     Q_DISABLE_COPY(QXmojiWinPrivate)
@@ -31,14 +65,12 @@ class QXmojiWinPrivate {
     SearchField search;
     const EmojiFont *font;
     FlowLayout *results;
-    FlowLayout *history;
     QMenu *contextMenu;
     bool closeOnMinimize;
     bool closeIsMinimize;
     bool hideInTaskbar;
 
     QXmojiWinPrivate(QXmojiWin *, const EmojiFont *, QMenu *);
-    void emojiClicked(const EmojiButton *button);
 };
 
 QXmojiWinPrivate::QXmojiWinPrivate(QXmojiWin *win, const EmojiFont *font,
@@ -52,21 +84,8 @@ QXmojiWinPrivate::QXmojiWinPrivate(QXmojiWin *win, const EmojiFont *font,
     hideInTaskbar(false)
 {}
 
-void QXmojiWinPrivate::emojiClicked(const EmojiButton *button)
-{
-    Q_Q(QXmojiWin);
-    emit q->clicked(button);
-    Emoji_use(button->emoji());
-    const Emoji **h = Emoji_history();
-    for (int i = 0; i < EMOJIHISTORY_MAXLEN; ++i)
-    {
-	EmojiButton *hb = static_cast<EmojiButton *>(
-		history->itemAt(i)->widget());
-	hb->setEmoji(h[i]);
-    }
-}
-
-QXmojiWin::QXmojiWin(QMenu *contextMenu, const EmojiFont *font) :
+QXmojiWin::QXmojiWin(QMenu *contextMenu, const EmojiFont *font,
+	EmojiHistory *history) :
     QWidget(nullptr, Qt::WindowDoesNotAcceptFocus),
     d_ptr(new QXmojiWinPrivate(this, font, contextMenu))
 {
@@ -77,7 +96,23 @@ QXmojiWin::QXmojiWin(QMenu *contextMenu, const EmojiFont *font) :
     connect(font, &EmojiFont::fontChanged, [font, tabs](){
 	    tabs->tabBar()->setFont(font->font()); });
 
-    int i = 0;
+    qsizetype nbuttons = EMOJISEARCH_MAXRESULTS + EMOJIHISTORY_MAXLEN
+	+ Emoji_count();
+    QList<EmojiButton *> buttons(nbuttons);
+    for (qsizetype bn = 0; bn < nbuttons; ++bn)
+    {
+	EmojiButton *btn = new EmojiButton(this);
+	btn->setFont(font->font());
+	connect(btn, &EmojiButton::clicked, [this, btn](){
+		const Emoji *emoji = btn->emoji();
+		if (emoji) emit emojiSelected(emoji); });
+	connect(font, &EmojiFont::fontChanged, [font, btn](){
+		btn->setFont(font->font()); });
+	buttons[bn] = btn;
+    }
+
+    int tn = 0;
+    qsizetype bn = 0;
     QWidget *searchTab = new QWidget(tabs);
     QVBoxLayout *searchLayout = new QVBoxLayout(searchTab);
     searchLayout->setContentsMargins(0, 0, 0, 0);
@@ -87,13 +122,7 @@ QXmojiWin::QXmojiWin(QMenu *contextMenu, const EmojiFont *font) :
     d_ptr->results = new FlowLayout(searchResults);
     for (int i = 0; i < EMOJISEARCH_MAXRESULTS; ++i)
     {
-	EmojiButton *button = new EmojiButton(searchResults, nullptr);
-	button->setFont(font->font());
-	connect(button, &EmojiButton::clicked, [this, button](){
-		d_ptr->emojiClicked(button); });
-	connect(font, &EmojiFont::fontChanged, [font, button](){
-		button->setFont(font->font()); });
-	d_ptr->results->addWidget(button);
+	d_ptr->results->addWidget(buttons[bn++]);
     }
     searchResults->setLayout(d_ptr->results);
     searchArea->setWidget(searchResults);
@@ -101,17 +130,24 @@ QXmojiWin::QXmojiWin(QMenu *contextMenu, const EmojiFont *font) :
     searchLayout->addWidget(searchArea);
     searchTab->setLayout(searchLayout);
     tabs->addTab(searchTab, QString::fromUcs4(U"\x1f50d"));
-    tabs->setTabToolTip(i++, "Search");
+    tabs->setTabToolTip(tn++, "Search");
 
     QScrollArea *historyArea = new QScrollArea(tabs);
     QWidget *historyPane = new QWidget(historyArea);
-    d_ptr->history = new FlowLayout(historyPane);
-    historyPane->setLayout(d_ptr->history);
+    FlowLayout *historylayout = new FlowLayout(historyPane);
+    for (int i = 0; i < EMOJIHISTORY_MAXLEN; ++i)
+    {
+	EmojiButton *btn = buttons[bn++];
+	btn->setEmoji(history->at(i));
+	historylayout->addWidget(btn);
+    }
+    historyPane->setLayout(historylayout);
     historyArea->setWidget(historyPane);
     historyArea->setWidgetResizable(true);
     tabs->addTab(historyArea, QString::fromUtf16(u"\x23f3"));
-    tabs->setTabToolTip(i++, "History");
+    tabs->setTabToolTip(tn++, "History");
 
+    InitEmojiEvent *iev = 0;
     for (size_t n = 0; n < EmojiGroup_count(); ++n)
     {
 	const EmojiGroup *group = EmojiGroup_at(n);
@@ -121,20 +157,18 @@ QXmojiWin::QXmojiWin(QMenu *contextMenu, const EmojiFont *font) :
 	for (size_t m = 0; m < EmojiGroup_countEmojis(group); ++m)
 	{
 	    const Emoji *emoji = EmojiGroup_emoji(group, m);
-	    EmojiButton *button = new EmojiButton(emojis, emoji);
-	    button->setFont(font->font());
-	    connect(button, &EmojiButton::clicked, [this, button](){
-		    d_ptr->emojiClicked(button); });
-	    connect(font, &EmojiFont::fontChanged, [font, button](){
-		    button->setFont(font->font()); });
-	    layout->addWidget(button);
+	    EmojiButton *btn = buttons[bn++];
+	    InitEmojiEvent *ev = new InitEmojiEvent(btn, emoji);
+	    if (iev) iev->setNext(ev);
+	    else qApp->postEvent(this, ev, Qt::LowEventPriority);
+	    iev = ev;
+	    layout->addWidget(btn);
 	}
 	emojis->setLayout(layout);
 	area->setWidget(emojis);
 	area->setWidgetResizable(true);
-	tabs->addTab(area, QString::fromUcs4(
-		    Emoji_codepoints(EmojiGroup_emoji(group, 0))));
-	tabs->setTabToolTip(i++, EmojiGroup_name(group));
+	tabs->addTab(area, Emoji_qstr(EmojiGroup_emoji(group, 0)));
+	tabs->setTabToolTip(tn++, EmojiGroup_name(group));
     }
     tabs->setCurrentIndex(1);
 
@@ -170,6 +204,15 @@ QXmojiWin::QXmojiWin(QMenu *contextMenu, const EmojiFont *font) :
 		    if (!b->emoji()) break;
 		    b->setEmoji(nullptr);
 		    ++i;
+		}
+	    });
+    connect(history, &EmojiHistory::changed,
+	    [history, historylayout](int changeLen){
+		for (int i = 0; i < changeLen; ++i)
+		{
+		    EmojiButton *hb = static_cast<EmojiButton *>(
+			    historylayout->itemAt(i)->widget());
+		    hb->setEmoji(history->at(i));
 		}
 	    });
 }
@@ -209,25 +252,24 @@ void QXmojiWin::contextMenuEvent(QContextMenuEvent *ev)
 void QXmojiWin::showEvent(QShowEvent *ev)
 {
     Q_D(QXmojiWin);
-    if (d->history->count() == 0)
-    {
-	const Emoji **history = Emoji_history();
-	for (int i = 0; i < EMOJIHISTORY_MAXLEN; ++i)
-	{
-	    EmojiButton *button = new EmojiButton(this, history[i]);
-	    button->setFont(d->font->font());
-	    connect(button, &EmojiButton::clicked, [d, button](){
-		    d->emojiClicked(button); });
-	    connect(d->font, &EmojiFont::fontChanged, [d, button](){
-		    button->setFont(d->font->font()); });
-	    d->history->addWidget(button);
-	}
-    }
     setAttribute(Qt::WA_X11NetWmWindowTypeUtility, d->hideInTaskbar);
     XcbAdapter_setSkipTaskbar(qXm->xcb(), winId(), d->hideInTaskbar);
     if (d->pos != QPoint(-1, -1)) windowHandle()->setPosition(d->pos);
     QWidget::showEvent(ev);
     d->closeIsMinimize = false;
+}
+
+void QXmojiWin::customEvent(QEvent *ev)
+{
+    if (ev->type() == QEvent::User)
+    {
+	InitEmojiEvent *iev = static_cast<InitEmojiEvent *>(ev);
+	iev->accept();
+	iev->button()->setEmoji(iev->emoji());
+	InitEmojiEvent *next = iev->next();
+	if (next) QTimer::singleShot(1, this, [this, next](){
+		qApp->postEvent(this, next, Qt::LowEventPriority); });
+    }
 }
 
 bool QXmojiWin::nativeEvent(const QByteArray &eventType,

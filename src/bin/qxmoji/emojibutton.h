@@ -9,7 +9,6 @@ C_CLASS_DECL(Emoji);
 class QEvent;
 class QEnterEvent;
 class QMouseEvent;
-class QShowEvent;
 
 class EmojiButton: public QLabel
 {
@@ -18,7 +17,7 @@ class EmojiButton: public QLabel
 	const Emoji *_emoji;
 	
     public:
-	EmojiButton(QWidget *parent, const Emoji *emoji);
+	EmojiButton(QWidget *parent);
 	const Emoji *emoji() const;
 	void setEmoji(const Emoji *emoji);
 
@@ -33,7 +32,6 @@ class EmojiButton: public QLabel
 #endif
 	void leaveEvent(QEvent *ev);
 	void mousePressEvent(QMouseEvent *ev);
-	void showEvent(QShowEvent *ev);
 };
 
 #endif

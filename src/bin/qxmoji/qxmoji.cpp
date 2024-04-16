@@ -38,11 +38,13 @@ class QXmojiPrivate {
     QIcon appIcon;
     QSystemTrayIcon trayIcon;
     QSettings settings;
+    EmojiHistory history;
     QXmojiWin win;
     AboutDlg aboutDlg;
     SettingsDlg settingsDlg;
     QXmoji::TrayMode mode;
     int waitms;
+    bool exiting;
     
     QXmojiPrivate(QXmoji *);
 
@@ -58,9 +60,11 @@ QXmojiPrivate::QXmojiPrivate(QXmoji *app) :
     settingsAct("&Settings"),
     exitAct("E&xit"),
     settings(QDir::homePath() + "/.config/qxmoji.ini", QSettings::IniFormat),
-    win(&contextMenu, &font),
+    history(settings.value("history", QString()).toString()),
+    win(&contextMenu, &font, &history),
     aboutDlg(&win),
-    settingsDlg(&win)
+    settingsDlg(&win),
+    exiting(false)
 {
     int rc = -1;
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
@@ -111,8 +115,6 @@ QXmojiPrivate::QXmojiPrivate(QXmoji *app) :
     if (waitms < 0) waitms = 0;
     if (waitms > 500) waitms = 500;
     settingsDlg.setWaitMs(waitms);
-    QByteArray history = settings.value("history", QByteArray()).toByteArray();
-    Emoji_loadHistory(history.length(), history);
     contextMenu.addAction(&showAct);
     contextMenu.addSeparator();
     contextMenu.addAction(&aboutAct);
@@ -146,21 +148,27 @@ QXmoji::QXmoji(int &argc, char **argv, void (*started)()) :
 	d_ptr->win.setCloseOnMinimize(true);
     }
 
-    connect(&d_ptr->win, &QXmojiWin::clicked, [this](const EmojiButton *b){
-	    XKeyInjector_inject(d_ptr->xcb, b->emoji(), d_ptr->waitms); });
+    connect(&d_ptr->win, &QXmojiWin::emojiSelected,
+	    [this](const Emoji *emoji){
+		XKeyInjector_inject(d_ptr->xcb, emoji, d_ptr->waitms);
+		d_ptr->history.record(emoji);
+	    });
+    connect(&d_ptr->history, &EmojiHistory::changed, [this](){
+	    d_ptr->settings.setValue("history",
+		    d_ptr->history.serialize()); });
     connect(&d_ptr->aboutAct, &QAction::triggered,
 	    &d_ptr->aboutDlg, &QWidget::show);
     connect(&d_ptr->settingsAct, &QAction::triggered,
 	    &d_ptr->settingsDlg, &QWidget::show);
-    connect(&d_ptr->exitAct, &QAction::triggered, qApp,
-	    &QCoreApplication::quit, Qt::QueuedConnection);
+    connect(&d_ptr->exitAct, &QAction::triggered,
+	    [this]() {
+		d_ptr->exiting = true;
+		QMetaObject::invokeMethod(this,
+			&QCoreApplication::quit, Qt::QueuedConnection);
+	    });
     connect(&d_ptr->win, &QXmojiWin::closing,
 	    [this](){
 		d_ptr->settings.setValue("size", d_ptr->win.size());
-		size_t historysz;
-		const void *historybytes = Emoji_saveHistory(&historysz);
-		QByteArray history((const char *)historybytes, historysz);
-		d_ptr->settings.setValue("history", history);
 	    });
     connect(&d_ptr->win, &QXmojiWin::closed,
 	    [this](bool minimize){
@@ -174,12 +182,18 @@ QXmoji::QXmoji(int &argc, char **argv, void (*started)()) :
 
 		    case TrayMode::Enabled:
 			if (!haveTray) quit();
-			else d_ptr->settings.setValue("shown", false);
+			else if (!d_ptr->exiting)
+			{
+			    d_ptr->settings.setValue("shown", false);
+			}
 			break;
 
 		    case TrayMode::Minimize:
 			if (!minimize || !haveTray) quit();
-			else d_ptr->settings.setValue("shown", false);
+			else if (!d_ptr->exiting)
+			{
+			    d_ptr->settings.setValue("shown", false);
+			}
 			break;
 		}
 	    });
@@ -228,11 +242,7 @@ QXmoji::QXmoji(int &argc, char **argv, void (*started)()) :
 		if (reason == QSystemTrayIcon::Trigger) showandraise();
 	    });
 
-    QVariant size = d_ptr->settings.value("size");
-    if (size.isValid())
-    {
-	d_ptr->win.resize(size.toSize());
-    }
+    d_ptr->win.resize(d_ptr->settings.value("size", QSize(600,240)).toSize());
     bool shown = d_ptr->settings.value("shown", true).toBool();
     if (shown || d_ptr->mode == TrayMode::Disabled ||
 	    !QSystemTrayIcon::isSystemTrayAvailable())

@@ -13,14 +13,12 @@ DECLEXPORT const EmojiGroup *Emoji_group(const Emoji *self)
     CMETHOD ATTR_PURE;
 DECLEXPORT const char32_t *Emoji_codepoints(const Emoji *self)
     CMETHOD ATTR_PURE ATTR_RETNONNULL;
-DECLEXPORT const char16_t *Emoji_utf16(const Emoji *self)
-    CMETHOD ATTR_PURE ATTR_RETNONNULL;
-DECLEXPORT const char *Emoji_utf8(const Emoji *self)
-    CMETHOD ATTR_PURE ATTR_RETNONNULL;
 DECLEXPORT const char *Emoji_name(const Emoji *self)
     CMETHOD ATTR_PURE ATTR_RETNONNULL;
 
-DECLEXPORT const Emoji *Emoji_byUtf8(const char *utf8)
+DECLEXPORT size_t Emoji_count(void)
+    ATTR_CONST;
+DECLEXPORT const Emoji *Emoji_at(size_t i)
     ATTR_PURE;
 
 DECLEXPORT const char *EmojiGroup_name(const EmojiGroup *self)

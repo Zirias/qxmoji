@@ -1,14 +1,14 @@
 #include "emojibutton.h"
 
 #include "emoji.h"
+#include "emojistring.h"
 
 #include <QMouseEvent>
 
-EmojiButton::EmojiButton(QWidget *parent, const Emoji *emoji) :
-    QLabel(parent), _emoji(emoji)
+EmojiButton::EmojiButton(QWidget *parent) :
+    QLabel(parent)
 {
-    setText("xx");
-    if (!emoji) hide();
+    hide();
 }
 
 const Emoji *EmojiButton::emoji() const
@@ -19,20 +19,13 @@ const Emoji *EmojiButton::emoji() const
 void EmojiButton::setEmoji(const Emoji *emoji)
 {
     _emoji = emoji;
-    hide();
-    setToolTip(QString());
-    if (emoji) show();
-}
-
-void EmojiButton::showEvent(QShowEvent *ev)
-{
-    if (!_emoji) return;
-    if (toolTip().isEmpty())
+    if (emoji)
     {
-	setText(QString::fromUcs4(Emoji_codepoints(_emoji)));
-	setToolTip(Emoji_name(_emoji));
+	setText(Emoji_qstr(emoji));
+	setToolTip(Emoji_name(emoji));
+	show();
     }
-    QWidget::showEvent(ev);
+    else hide();
 }
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)

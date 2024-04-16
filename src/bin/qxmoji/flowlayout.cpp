@@ -110,7 +110,7 @@ void FlowLayout::setGeometry(const QRect &rect)
 QSize FlowLayout::sizeHint() const
 {
     QSize hintSize = minimumSize();
-    hintSize.setWidth(hintSize.width()*16+1);
+    hintSize.setWidth(hintSize.width()*16);
     return hintSize;
 }
 

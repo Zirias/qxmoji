@@ -12,11 +12,14 @@
 #define qtnativeres qintptr
 #endif
 
-class EmojiButton;
+C_CLASS_DECL(Emoji);
+
 class EmojiFont;
+class EmojiHistory;
 class QByteArray;
 class QCloseEvent;
 class QContextMenuEvent;
+class QEvent;
 class QMenu;
 class QShowEvent;
 
@@ -28,7 +31,8 @@ class QXmojiWin: public QWidget
 	QScopedPointer<QXmojiWinPrivate> const d_ptr;
 
     public:
-	QXmojiWin(QMenu *contextMenu, const EmojiFont *font);
+	QXmojiWin(QMenu *contextMenu, const EmojiFont *font,
+		EmojiHistory *history);
 	~QXmojiWin();
 
 	void setCloseOnMinimize(bool close);
@@ -38,11 +42,12 @@ class QXmojiWin: public QWidget
 	void closeEvent(QCloseEvent *ev) override;
 	void contextMenuEvent(QContextMenuEvent *ev) override;
 	void showEvent(QShowEvent *ev) override;
+	void customEvent(QEvent *ev) override;
 	bool nativeEvent(const QByteArray &eventType, void *message,
 		qtnativeres *result) override;
 
     signals:
-	void clicked(const EmojiButton *button);
+	void emojiSelected(const Emoji *emoji);
 	void closing(bool minimize);
 	void closed(bool minimize);
 };

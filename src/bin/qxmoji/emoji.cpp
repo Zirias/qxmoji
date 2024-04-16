@@ -2,12 +2,13 @@
 
 #include <string.h>
 
+#include <QString>
+
 struct Emoji
 {
     const EmojiGroup *const group;
     const char32_t *const codepoints;
-    const char16_t *const utf16;
-    const char *const utf8;
+    const QString qstr;
     const char *const name;
 };
 
@@ -24,12 +25,14 @@ typedef struct EmojiBucket
     const Emoji *const *const emojis;
 } EmojiBucket;
 
-#include "emojidata.c"
+#include "emojidata.cpp"
 
-static int hashstr(const char *s)
+static int hashstr(const QString &str)
 {
     size_t h = 5381;
-    while (*s) h += (h<<5) + ((unsigned char)*s++);
+    const char16_t *c = reinterpret_cast<const char16_t *>(str.constData());
+    qsizetype sz = str.size();
+    for (qsizetype i = 0; i < sz; ++i) h+= (h<<5) + c[i];
     return h & 0x3ffU;
 }
 
@@ -43,14 +46,9 @@ SOLOCAL const char32_t *Emoji_codepoints(const Emoji *self)
     return self->codepoints;
 }
 
-SOLOCAL const char16_t *Emoji_utf16(const Emoji *self)
+SOLOCAL const QString &Emoji_qstr(const Emoji *self)
 {
-    return self->utf16;
-}
-
-SOLOCAL const char *Emoji_utf8(const Emoji *self)
-{
-    return self->utf8;
+    return self->qstr;
 }
 
 SOLOCAL const char *Emoji_name(const Emoji *self)
@@ -58,19 +56,30 @@ SOLOCAL const char *Emoji_name(const Emoji *self)
     return self->name;
 }
 
-SOLOCAL const Emoji *Emoji_byUtf8(const char *utf8)
+SOLOCAL const Emoji *Emoji_byQstr(const QString &str)
 {
-    int hash = hashstr(utf8);
+    int hash = hashstr(str);
     const Emoji *emoji = 0;
     for (size_t i = 0; i < emojiint_hashtable[hash].size; ++i)
     {
-	if (!strcmp(utf8, emojiint_hashtable[hash].emojis[i]->utf8))
+	if (emojiint_hashtable[hash].emojis[i]->qstr == str)
 	{
 	    emoji = emojiint_hashtable[hash].emojis[i];
 	    break;
 	}
     }
     return emoji;
+}
+
+SOLOCAL size_t Emoji_count(void)
+{
+    return sizeof emojiint_emojis / sizeof *emojiint_emojis;
+}
+
+SOLOCAL const Emoji *Emoji_at(size_t i)
+{
+    if (i > sizeof emojiint_emojis / sizeof *emojiint_emojis) return 0;
+    return emojiint_emojis + i;
 }
 
 SOLOCAL const char *EmojiGroup_name(const EmojiGroup *self)

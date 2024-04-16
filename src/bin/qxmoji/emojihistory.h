@@ -3,15 +3,33 @@
 
 #include "decl.h"
 
-#include <stddef.h>
+#include <QObject>
+#include <QScopedPointer>
 
 #define EMOJIHISTORY_MAXLEN 100
 
 C_CLASS_DECL(Emoji);
 
-DECLEXPORT const Emoji **Emoji_history(void);
-DECLEXPORT void Emoji_use(const Emoji *emoji);
-DECLEXPORT const void *Emoji_saveHistory(size_t *sz);
-DECLEXPORT void Emoji_loadHistory(size_t sz, const void *data);
+class EmojiHistoryPrivate;
+class EmojiHistory: public QObject
+{
+	Q_OBJECT
+	Q_DECLARE_PRIVATE(EmojiHistory)
+	QScopedPointer<EmojiHistoryPrivate> const d_ptr;
+
+    public:
+	EmojiHistory(const QString &str);
+	~EmojiHistory();
+
+	int len();
+	const Emoji *at(int i);
+	const QString &serialize();
+
+    public slots:
+	void record(const Emoji *emoji);
+
+    signals:
+	void changed(int changeLen);
+};
 
 #endif

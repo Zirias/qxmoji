@@ -13,7 +13,6 @@ struct Emoji
     const EmojiGroup *group;
     char32_t *codepoints;
     char16_t *utf16;
-    char *utf8;
     char *name;
 };
 
@@ -64,10 +63,10 @@ static char *copystr(const char *s)
     return copy;
 }
 
-static int hashstr(const char *s)
+static int hashstr(const char16_t *s)
 {
     size_t h = 5381;
-    while (*s) h += (h<<5) + ((unsigned char)*s++);
+    while (*s) h += (h<<5) + *s++;
     return h & 0x3ffU;
 }
 
@@ -88,43 +87,6 @@ static char16_t *toutf16(char32_t *codepoints)
     }
     char16_t *result = xmalloc((len+1) * sizeof *result);
     memcpy(result, utf16, (len+1) * sizeof *result);
-    return result;
-}
-
-static char *toutf8(char32_t *codepoints)
-{
-    char utf8[64] = {0};
-    int len = 0;
-    for (char32_t *cp = codepoints; len < 60 && *cp; ++cp)
-    {
-	if (*cp < 0x80U)
-	{
-	    utf8[len++] = *cp;
-	    continue;
-	}
-	unsigned char b0 = *cp & 0xff;
-	unsigned char b1 = (*cp >> 8) & 0xff;
-	if (*cp < 0x800U)
-	{
-	    utf8[len++] = (0xc0U | (b1 << 2) | (b0 >> 6));
-	    utf8[len++] = (0x80U | (b0 & 0x3fU));
-	    continue;
-	}
-	if (*cp < 0x10000U)
-	{
-	    utf8[len++] = (0xe0U | (b1 >> 4));
-	    utf8[len++] = (0x80U | ((b1 << 2) & 0x3fU) | (b0 >> 6));
-	    utf8[len++] = (0x80U | (b0 & 0x3fU));
-	    continue;
-	}
-	unsigned char b2 = (*cp >> 16) & 0xff;
-	utf8[len++] =  (0xf0U | (b2 >> 2));
-	utf8[len++] = (0x80U | ((b2 << 4) & 0x3fU) | (b1 >> 4));
-	utf8[len++] = (0x80U | ((b1 << 2) & 0x3fU) | (b0 >> 6));
-	utf8[len++] = (0x80U | (b0 & 0x3fU));
-    }
-    char *result = xmalloc(len+1);
-    memcpy(result, utf8, len+1);
     return result;
 }
 
@@ -184,7 +146,6 @@ static Emoji *Emoji_create(void)
     memcpy(self->codepoints, codepoints,
 	    (ncodepoints+1) * sizeof *self->codepoints);
     self->utf16 = toutf16(codepoints);
-    self->utf8 = toutf8(codepoints);
     self->name = copystr(c);
     return self;
 }
@@ -193,7 +154,6 @@ static void Emoji_destroy(Emoji *self)
 {
     if (!self) return;
     free(self->name);
-    free(self->utf8);
     free(self->utf16);
     free(self->codepoints);
     free(self);
@@ -228,8 +188,13 @@ static const char *parsegroup(void)
     if (subgroup)
     {
 	if (match(c, "hand-fingers-open")) return "Hands & Body parts";
-	else if (match(c, "person") && isws(c)) return "Person";
-	else if (match(c, "person-activity")) return "Activities";
+	else if (match(c, "person"))
+	{
+	    if (!*c || isws(c)) return "Person";
+	    else if (match(c, "-role")) return "Roles & Fantasy";
+	    else if (match(c, "-activity")) return "Activities";
+	    else return 0;
+	}
 	else if (match(c, "family")) return "Family";
 	else return 0;
     }
@@ -297,7 +262,7 @@ int main(int argc, char **argv)
     }
 
     puts("/* GENERATED FILE -- do not edit. */\n\n"
-	    "static const EmojiGroup emojiint_groups[];\n\n"
+	    "extern const EmojiGroup emojiint_groups[];\n\n"
 	    "static const Emoji emojiint_emojis[] = {");
 
     size_t offset = 0;
@@ -309,23 +274,18 @@ int main(int argc, char **argv)
 	    Emoji *emoji = group->emojis[j];
 	    if (i||j) puts(",");
 	    printf("    { emojiint_groups+%zu, U\"", i);
-	    for (char32_t *cp = emoji->codepoints; *cp; ++cp)
+	    for (char32_t *c = emoji->codepoints; *c; ++c)
 	    {
-		printf("\\x%x", *cp);
+		printf("\\x%x", *c);
 	    }
-	    fputs("\", u\"", stdout);
+	    fputs("\", QStringLiteral(u\"", stdout);
 	    for (char16_t *c = emoji->utf16; *c; ++c)
 	    {
 		printf("\\x%x", *c);
 	    }
-	    fputs("\", \"", stdout);
-	    for (char *c = emoji->utf8; *c; ++c)
-	    {
-		printf("\\x%x", (unsigned char)*c);
-	    }
-	    printf("\", \"%s\" }", emoji->name);
+	    printf("\"), \"%s\" }", emoji->name);
 
-	    int hash = hashstr(emoji->utf8);
+	    int hash = hashstr(emoji->utf16);
 	    if (buckets[hash].size == buckets[hash].capa)
 	    {
 		buckets[hash].emojis = xrealloc(buckets[hash].emojis,
@@ -337,7 +297,7 @@ int main(int argc, char **argv)
     }
     offset = 0;
     puts("\n};\n\n"
-	    "static const EmojiGroup emojiint_groups[] = {");
+	    "SOLOCAL const EmojiGroup emojiint_groups[] = {");
     for (size_t i = 0; i < ngroups; ++i)
     {
 	if (i) puts(",");
