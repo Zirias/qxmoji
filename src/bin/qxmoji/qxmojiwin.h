@@ -19,7 +19,6 @@ class EmojiHistory;
 class QByteArray;
 class QCloseEvent;
 class QContextMenuEvent;
-class QEvent;
 class QMenu;
 class QShowEvent;
 
@@ -42,7 +41,6 @@ class QXmojiWin: public QWidget
 	void closeEvent(QCloseEvent *ev) override;
 	void contextMenuEvent(QContextMenuEvent *ev) override;
 	void showEvent(QShowEvent *ev) override;
-	void customEvent(QEvent *ev) override;
 	bool nativeEvent(const QByteArray &eventType, void *message,
 		qtnativeres *result) override;
 

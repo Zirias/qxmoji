@@ -17,6 +17,7 @@
 #include <QHideEvent>
 #include <QList>
 #include <QMenu>
+#include <QQueue>
 #include <QScrollArea>
 #include <QShowEvent>
 #include <QTabBar>
@@ -25,34 +26,35 @@
 #include <QVBoxLayout>
 #include <QWindow>
 
-class InitEmojiEvent: public QEvent
+class InitEmojiQueue
 {
-	EmojiButton *_button;
-	const Emoji *_emoji;
-	InitEmojiEvent *_next;
+	struct Params
+	{
+	    EmojiButton *button;
+	    const Emoji *emoji;
+	};
+
+	QQueue<Params> _queue;
 
     public:
-	InitEmojiEvent(EmojiButton *button, const Emoji *emoji) :
-	    QEvent(QEvent::User), _button(button), _emoji(emoji), _next(0) {}
+	InitEmojiQueue() {};
 
-	void setNext(InitEmojiEvent *next)
+	void enqueue(EmojiButton *button, const Emoji *emoji)
 	{
-	    _next = next;
+	    _queue.enqueue({button, emoji});
 	}
 
-	InitEmojiEvent *next()
+	template <typename Functor> void run(Functor done)
 	{
-	    return _next;
-	}
-
-	EmojiButton *button()
-	{
-	    return _button;
-	}
-
-	const Emoji *emoji()
-	{
-	    return _emoji;
+	    if (_queue.count())
+	    {
+		QTimer::singleShot(1, [this, done](){
+			struct Params p = _queue.dequeue();
+			p.button->setEmoji(p.emoji);
+			run(done);
+		    });
+	    }
+	    else done();
 	}
 };
 
@@ -147,7 +149,7 @@ QXmojiWin::QXmojiWin(QMenu *contextMenu, const EmojiFont *font,
     tabs->addTab(historyArea, QString::fromUtf16(u"\x23f3"));
     tabs->setTabToolTip(tn++, "History");
 
-    InitEmojiEvent *iev = 0;
+    InitEmojiQueue *ieq = new InitEmojiQueue();
     for (size_t n = 0; n < EmojiGroup_count(); ++n)
     {
 	const EmojiGroup *group = EmojiGroup_at(n);
@@ -158,10 +160,7 @@ QXmojiWin::QXmojiWin(QMenu *contextMenu, const EmojiFont *font,
 	{
 	    const Emoji *emoji = EmojiGroup_emoji(group, m);
 	    EmojiButton *btn = buttons[bn++];
-	    InitEmojiEvent *ev = new InitEmojiEvent(btn, emoji);
-	    if (iev) iev->setNext(ev);
-	    else qApp->postEvent(this, ev, Qt::LowEventPriority);
-	    iev = ev;
+	    ieq->enqueue(btn, emoji);
 	    layout->addWidget(btn);
 	}
 	emojis->setLayout(layout);
@@ -215,6 +214,8 @@ QXmojiWin::QXmojiWin(QMenu *contextMenu, const EmojiFont *font,
 		    hb->setEmoji(history->at(i));
 		}
 	    });
+
+    ieq->run([ieq](){ delete ieq; });
 }
 
 QXmojiWin::~QXmojiWin() {}
@@ -257,19 +258,6 @@ void QXmojiWin::showEvent(QShowEvent *ev)
     if (d->pos != QPoint(-1, -1)) windowHandle()->setPosition(d->pos);
     QWidget::showEvent(ev);
     d->closeIsMinimize = false;
-}
-
-void QXmojiWin::customEvent(QEvent *ev)
-{
-    if (ev->type() == QEvent::User)
-    {
-	InitEmojiEvent *iev = static_cast<InitEmojiEvent *>(ev);
-	iev->accept();
-	iev->button()->setEmoji(iev->emoji());
-	InitEmojiEvent *next = iev->next();
-	if (next) QTimer::singleShot(1, this, [this, next](){
-		qApp->postEvent(this, next, Qt::LowEventPriority); });
-    }
 }
 
 bool QXmojiWin::nativeEvent(const QByteArray &eventType,
