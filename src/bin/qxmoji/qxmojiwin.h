@@ -8,11 +8,16 @@
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #define qtnativeres long
+typedef const void EmojiArg;
+#define EMOJI(x) ((const Emoji *)(x))
+#define EMOJIARG(x) ((EmojiArg *)(x))
 #else
 #define qtnativeres qintptr
-#endif
-
 C_CLASS_DECL(Emoji);
+typedef const Emoji EmojiArg;
+#define EMOJI(x) (x)
+#define EMOJIARG(x) (x)
+#endif
 
 class EmojiFont;
 class EmojiHistory;
@@ -45,7 +50,7 @@ class QXmojiWin: public QWidget
 		qtnativeres *result) override;
 
     signals:
-	void emojiSelected(const Emoji *emoji);
+	void emojiSelected(EmojiArg *emoji);
 	void closing(bool minimize);
 	void closed(bool minimize);
 };

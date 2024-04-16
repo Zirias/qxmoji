@@ -128,7 +128,7 @@ QXmojiWin::QXmojiWin(QMenu *contextMenu, const EmojiFont *font,
 	btn->setFont(font->font());
 	connect(btn, &EmojiButton::clicked, [this, btn](){
 		const Emoji *emoji = btn->emoji();
-		if (emoji) emit emojiSelected(emoji); });
+		if (emoji) emit emojiSelected(EMOJIARG(emoji)); });
 	connect(font, &EmojiFont::fontChanged, [font, btn](){
 		btn->setFont(font->font()); });
 	buttons[bn] = btn;

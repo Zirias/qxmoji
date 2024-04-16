@@ -67,6 +67,7 @@ QXmojiPrivate::QXmojiPrivate(QXmoji *app) :
     exiting(false)
 {
     int rc = -1;
+
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     if (!QX11Info::isPlatformX11()) rc = 1;
     else xcb = XcbAdapter_create(QX11Info::connection());
@@ -149,9 +150,9 @@ QXmoji::QXmoji(int &argc, char **argv, void (*started)()) :
     }
 
     connect(&d_ptr->win, &QXmojiWin::emojiSelected,
-	    [this](const Emoji *emoji){
-		XKeyInjector_inject(d_ptr->xcb, emoji, d_ptr->waitms);
-		d_ptr->history.record(emoji);
+	    [this](EmojiArg *emoji){
+		XKeyInjector_inject(d_ptr->xcb, EMOJI(emoji), d_ptr->waitms);
+		d_ptr->history.record(EMOJI(emoji));
 	    });
     connect(&d_ptr->history, &EmojiHistory::changed, [this](){
 	    d_ptr->settings.setValue("history",
