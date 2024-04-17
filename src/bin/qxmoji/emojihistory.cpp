@@ -17,14 +17,18 @@ class EmojiHistoryPrivate
     QString hstr;
     int len;
 
-    EmojiHistoryPrivate(EmojiHistory *, const QStringList &);
+    EmojiHistoryPrivate(EmojiHistory *);
+    void load(const QStringList &);
 };
 
-EmojiHistoryPrivate::EmojiHistoryPrivate(
-	EmojiHistory *h, const QStringList &l):
+EmojiHistoryPrivate::EmojiHistoryPrivate(EmojiHistory *h) :
     q_ptr(h),
     len(0)
+{}
+
+void EmojiHistoryPrivate::load(const QStringList &l)
 {
+    len = 0;
     if (!l.count()) return;
     for (auto e = l.cbegin(); len < EMOJIHISTORY_MAXLEN && e != l.cend(); ++e)
     {
@@ -34,8 +38,10 @@ EmojiHistoryPrivate::EmojiHistoryPrivate(
 }
 
 EmojiHistory::EmojiHistory(const QString &str) :
-    d_ptr(new EmojiHistoryPrivate(this, str.split(' ')))
-{}
+    d_ptr(new EmojiHistoryPrivate(this))
+{
+    d_ptr->load(str.split(' '));
+}
 
 EmojiHistory::~EmojiHistory() {}
 
@@ -78,5 +84,14 @@ void EmojiHistory::record(const Emoji *emoji)
     memmove(d->history+1, d->history, movelen * sizeof *d->history);
     d->history[0] = emoji;
     emit changed(movelen+1);
+}
+
+void EmojiHistory::load(const QString &str)
+{
+    Q_D(EmojiHistory);
+    int changelen = d->len;
+    d->load(str.split(' '));
+    if (d->len > changelen) changelen = d->len;
+    emit changed(changelen);
 }
 

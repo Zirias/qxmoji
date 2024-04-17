@@ -9,14 +9,15 @@ qxmoji_MODULES=		emojisearch \
 qxmoji_CXXMODULES=	aboutdlg \
 			emoji \
 			flowlayout \
-			guimain
+			guimain \
+			settingsdlg
 qxmoji_MOCMODULES=	emojibutton \
 			emojifont \
 			emojihistory \
 			searchfield \
-			settingsdlg \
 			singleinstance \
 			qxmoji \
+			qxmojisettings \
 			qxmojiwin
 qxmoji_QRC=		icon
 qxmoji_CFLAGS=		-fPIC

@@ -27,6 +27,7 @@ class EmojiHistory: public QObject
 
     public slots:
 	void record(const Emoji *emoji);
+	void load(const QString &str);
 
     signals:
 	void changed(int changeLen);
