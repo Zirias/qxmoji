@@ -8,9 +8,19 @@
 #include <QLocalServer>
 #include <QLocalSocket>
 
-SingleInstance::SingleInstance() : QObject() {}
+class SingleInstancePrivate
+{
+    Q_DISABLE_COPY(SingleInstancePrivate)
+    Q_DECLARE_PUBLIC(SingleInstance)
+    SingleInstance *const q_ptr;
 
-bool SingleInstance::startInstance()
+    const QString serverName;
+    QLocalServer server;
+
+    SingleInstancePrivate(SingleInstance *inst);
+};
+
+static QString initServerName()
 {
     QCryptographicHash appData(QCryptographicHash::Sha256);
     appData.addData(QCoreApplication::applicationName().toUtf8());
@@ -20,26 +30,48 @@ bool SingleInstance::startInstance()
     if (pw) username = pw->pw_name;
     if (username.isEmpty()) username = qgetenv("USER");
     appData.addData(username);
-    QString serverName = appData.result().toBase64().replace("/","_");
+    return appData.result().toBase64().replace("/","_");
+}
 
-    QLocalServer *server = new QLocalServer(this);
-    connect(server, &QLocalServer::newConnection, [this, server](){
-		server->nextPendingConnection()->close();
+SingleInstancePrivate::SingleInstancePrivate(SingleInstance *inst) :
+    q_ptr(inst),
+    serverName(initServerName())
+{}
+
+SingleInstance::SingleInstance() :
+    d_ptr(new SingleInstancePrivate(this))
+{
+    connect(&d_ptr->server, &QLocalServer::newConnection, [this](){
+		d_ptr->server.nextPendingConnection()->close();
 		emit secondaryInstance();
 	    });
+}
 
-    bool listening = server->listen(serverName);
+SingleInstance::~SingleInstance() {}
+
+bool SingleInstance::startInstance()
+{
+    Q_D(SingleInstance);
+
+    bool listening = d->server.listen(d->serverName);
     if (!listening)
     {
 	QLocalSocket client;
-	client.connectToServer(serverName, QIODevice::WriteOnly);
+	client.connectToServer(d->serverName, QIODevice::WriteOnly);
 	if (client.state() != QLocalSocket::ConnectedState &&
 		!client.waitForConnected(2000))
 	{
-	    QLocalServer::removeServer(serverName);
-	    listening = server->listen(serverName);
+	    QLocalServer::removeServer(d->serverName);
+	    listening = d->server.listen(d->serverName);
 	}
 	else client.disconnectFromServer();
     }
     return listening;
 }
+
+void SingleInstance::stopInstance()
+{
+    Q_D(SingleInstance);
+    d->server.close();
+}
+

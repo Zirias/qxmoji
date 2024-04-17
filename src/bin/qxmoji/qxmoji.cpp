@@ -190,6 +190,14 @@ QXmoji::QXmoji(int &argc, char **argv, void (*started)()) :
 		d_ptr->win.setHideInTaskbar(mode != TrayMode::Disabled
 			&& QSystemTrayIcon::isSystemTrayAvailable());
 	    });
+    connect(&d_ptr->settings, &QXmojiSettings::singleInstanceChanged,
+	    [this](bool single){
+		if (single)
+		{
+		    if (!d_ptr->instance.startInstance()) quit();
+		}
+		else d_ptr->instance.stopInstance();
+	    });
     connect(&d_ptr->settings, &QXmojiSettings::scaleChanged,
 	    &d_ptr->font, &EmojiFont::setScale);
     auto showandraise = [this](){
