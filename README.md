@@ -93,3 +93,27 @@ to install qXmoji to the selected prefix and DESTDIR.
 If your default `make` tool is not GNU make, the latter is probably installed
 using the name `gmake` (e.g. on BSD systems), so type that instead of `make`.
 
+## Building on Linux (Debian / Ubuntu)
+
+Clone the current source tree with the needed submodules.
+
+    git clone git@github.com:jhx0/qxmoji.git --recurse-submodules
+
+Next install the needed dependencies.
+
+    sudo apt install qtbase5-dev libqt5x11extras5-dev libxcb-xtest0-dev -y
+    sudo apt install build-essential -y
+
+Change into the source directory and issue the make command as following.
+
+    make QT_VERSION=5
+
+After the building has finished you can find the resulting binary under:
+
+    bin/x86_64-linux-gnu/release/
+
+Note: Debian and Ubuntu currently do not ship Qt6. In order to build the code
+we need to leverage Qt5 as shown above.
+
+Tested on Debian 12 amd64 with GCC 12.2.0 (Debian 12.2.0-14)
+

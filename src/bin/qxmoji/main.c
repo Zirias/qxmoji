@@ -1,3 +1,8 @@
+/* Needed to build on Linux */
+#ifdef __linux__
+#	define _GNU_SOURCE
+#endif
+
 #include "guimain.h"
 
 #include <signal.h>
