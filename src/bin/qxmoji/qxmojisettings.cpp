@@ -1,10 +1,14 @@
 #include "qxmojisettings.h"
 
+#include "nfsdetect.h"
+
+#include <QDateTime>
 #include <QFileInfo>
 #include <QFileSystemWatcher>
 #include <QSettings>
 #include <QSize>
 #include <QString>
+#include <QTimer>
 
 class QXmojiSettingsPrivate
 {
@@ -12,9 +16,11 @@ class QXmojiSettingsPrivate
     Q_DECLARE_PUBLIC(QXmojiSettings)
     QXmojiSettings *const q_ptr;
 
-    QFileInfo file;
+    QString file;
     QSettings settings;
     QFileSystemWatcher watcher;
+    QTimer timer;
+    QDateTime lastModified;
     QString history;
     QSize size;
     EmojiFont::Scale scale;
@@ -22,11 +28,12 @@ class QXmojiSettingsPrivate
     int wait;
     bool shown;
     bool singleInstance;
+    bool nfs;
 
     QXmojiSettingsPrivate(QXmojiSettings *qxms, const QString &file);
 
-    void unwatch();
     void syncAndWatch();
+    void set(const QString &key, const QVariant &value);
     void updateFromFile();
 };
 
@@ -44,6 +51,7 @@ QXmojiSettingsPrivate::QXmojiSettingsPrivate(
     file(file),
     settings(file, QSettings::IniFormat),
     watcher(),
+    timer(),
     history(settings.value(K_HISTORY).toString()),
     size(settings.value(K_SIZE, QSize(600, 240)).toSize()),
     scale(settings.value(K_SCALE, EmojiFont::Scale::Small)
@@ -52,21 +60,12 @@ QXmojiSettingsPrivate::QXmojiSettingsPrivate(
 	    .value<QXmoji::TrayMode>()),
     wait(settings.value(K_WAIT, 50).toInt()),
     shown(settings.value(K_SHOWN, true).toBool()),
-    singleInstance(settings.value(K_SINGLEINSTANCE, true).toBool())
+    singleInstance(settings.value(K_SINGLEINSTANCE, true).toBool()),
+    nfs(isNfs(qPrintable(file)))
 {
     if (wait < 0) wait = 0;
     if (wait > 500) wait = 500;
-    syncAndWatch();
-}
-
-void QXmojiSettingsPrivate::unwatch()
-{
-    watcher.removePath(file.filePath());
-}
-
-void QXmojiSettingsPrivate::syncAndWatch()
-{
-    if (!file.exists())
+    if (!QFileInfo::exists(file))
     {
 	settings.setValue(K_HISTORY, history);
 	settings.setValue(K_SCALE, scale);
@@ -76,8 +75,27 @@ void QXmojiSettingsPrivate::syncAndWatch()
 	settings.setValue(K_TRAYMODE, trayMode);
 	settings.setValue(K_WAIT, wait);
     }
+    syncAndWatch();
+}
+
+void QXmojiSettingsPrivate::syncAndWatch()
+{
     settings.sync();
-    watcher.addPath(file.filePath());
+    if (nfs)
+    {
+	timer.start(2500);
+	QFileInfo info(file);
+	lastModified = info.lastModified();
+    }
+    else watcher.addPath(file);
+}
+
+void QXmojiSettingsPrivate::set(const QString &key, const QVariant &value)
+{
+    if (nfs) timer.stop();
+    else watcher.removePath(file);
+    settings.setValue(key, value);
+    syncAndWatch();
 }
 
 void QXmojiSettingsPrivate::updateFromFile()
@@ -94,7 +112,7 @@ void QXmojiSettingsPrivate::updateFromFile()
     int nwait = settings.value(K_WAIT, 50).toInt();
     bool nshown = settings.value(K_SHOWN, true).toBool();
     bool nsingleInstance = settings.value(K_SINGLEINSTANCE, true).toBool();
-    watcher.addPath(file.filePath());
+    if (!nfs) watcher.addPath(file);
 
     if (nhistory != history)
     {
@@ -145,7 +163,17 @@ void QXmojiSettingsPrivate::updateFromFile()
 QXmojiSettings::QXmojiSettings(const QString &file) :
     d_ptr(new QXmojiSettingsPrivate(this, file))
 {
-    connect(&d_ptr->watcher, &QFileSystemWatcher::fileChanged,
+    if (d_ptr->nfs) connect(&d_ptr->timer, &QTimer::timeout,
+	    [this](){
+		QFileInfo info(d_ptr->file);
+		QDateTime mod = info.lastModified();
+		if (mod != d_ptr->lastModified)
+		{
+		    d_ptr->lastModified = mod;
+		    d_ptr->updateFromFile();
+		}
+	    });
+    else connect(&d_ptr->watcher, &QFileSystemWatcher::fileChanged,
 	    [this](){ d_ptr->updateFromFile(); });
 }
 
@@ -198,9 +226,7 @@ void QXmojiSettings::setHistory(const QString &history)
     Q_D(QXmojiSettings);
     if (d->history == history) return;
     d->history = history;
-    d->unwatch();
-    d->settings.setValue(K_HISTORY, d->history);
-    d->syncAndWatch();
+    d->set(K_HISTORY, d->history);
     emit historyChanged(d->history);
 }
 
@@ -209,9 +235,7 @@ void QXmojiSettings::setScale(EmojiFont::Scale scale)
     Q_D(QXmojiSettings);
     if (d->scale == scale) return;
     d->scale = scale;
-    d->unwatch();
-    d->settings.setValue(K_SCALE, d->scale);
-    d->syncAndWatch();
+    d->set(K_SCALE, d->scale);
     emit scaleChanged(d->scale);
 }
 
@@ -220,9 +244,7 @@ void QXmojiSettings::setShown(bool shown)
     Q_D(QXmojiSettings);
     if (d->shown == shown) return;
     d->shown = shown;
-    d->unwatch();
-    d->settings.setValue(K_SHOWN, d->shown);
-    d->syncAndWatch();
+    d->set(K_SHOWN, d->shown);
     emit shownChanged(d->shown);
 }
 
@@ -231,9 +253,7 @@ void QXmojiSettings::setSingleInstance(bool singleInstance)
     Q_D(QXmojiSettings);
     if (d->singleInstance == singleInstance) return;
     d->singleInstance = singleInstance;
-    d->unwatch();
-    d->settings.setValue(K_SINGLEINSTANCE, d->singleInstance);
-    d->syncAndWatch();
+    d->set(K_SINGLEINSTANCE, d->singleInstance);
     emit singleInstanceChanged(d->singleInstance);
 }
 
@@ -242,9 +262,7 @@ void QXmojiSettings::setSize(const QSize &size)
     Q_D(QXmojiSettings);
     if (d->size == size) return;
     d->size = size;
-    d->unwatch();
-    d->settings.setValue(K_SIZE, d->size);
-    d->syncAndWatch();
+    d->set(K_SIZE, d->size);
     emit sizeChanged(d->size);
 }
 
@@ -253,9 +271,7 @@ void QXmojiSettings::setTrayMode(QXmoji::TrayMode trayMode)
     Q_D(QXmojiSettings);
     if (d->trayMode == trayMode) return;
     d->trayMode = trayMode;
-    d->unwatch();
-    d->settings.setValue(K_TRAYMODE, d->trayMode);
-    d->syncAndWatch();
+    d->set(K_TRAYMODE, d->trayMode);
     emit trayModeChanged(d->trayMode);
 }
 
@@ -266,9 +282,7 @@ void QXmojiSettings::setWait(int wait)
     if (wait > 500) wait = 500;
     if (d->wait == wait) return;
     d->wait = wait;
-    d->unwatch();
-    d->settings.setValue(K_WAIT, d->wait);
-    d->syncAndWatch();
+    d->set(K_WAIT, d->wait);
     emit waitChanged(d->wait);
 }
 
