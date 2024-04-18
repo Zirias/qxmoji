@@ -1,7 +1,4 @@
-/* Needed to build on Linux */
-#ifdef __linux__
-#	define _GNU_SOURCE
-#endif
+#define _POSIX_C_SOURCE 200112L
 
 #include "guimain.h"
 
