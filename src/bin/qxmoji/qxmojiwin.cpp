@@ -40,10 +40,10 @@ class InitEmojiQueue
 	int remaining;
 
     public:
-	InitEmojiQueue(int ngroups, QTabWidget *tabs) :
-	    queue(new QQueue<Params>[ngroups]),
-	    tabs(tabs),
-	    ngroups(ngroups),
+	InitEmojiQueue(int n, QTabWidget *tabwidget) :
+	    queue(new QQueue<Params>[n]),
+	    tabs(tabwidget),
+	    ngroups(n),
 	    remaining(ngroups)
 	{};
 
@@ -97,12 +97,12 @@ class QXmojiWinPrivate {
     QXmojiWinPrivate(QXmojiWin *, const EmojiFont *, QMenu *);
 };
 
-QXmojiWinPrivate::QXmojiWinPrivate(QXmojiWin *win, const EmojiFont *font,
-	QMenu *contextMenu) :
+QXmojiWinPrivate::QXmojiWinPrivate(QXmojiWin *win, const EmojiFont *ef,
+	QMenu *ctxMenu) :
     q_ptr(win),
     pos(-1, -1),
-    font(font),
-    contextMenu(contextMenu),
+    font(ef),
+    contextMenu(ctxMenu),
     closeOnMinimize(false),
     closeIsMinimize(false),
     hideInTaskbar(false)

@@ -30,7 +30,7 @@ class QXmojiSettingsPrivate
     bool singleInstance;
     bool nfs;
 
-    QXmojiSettingsPrivate(QXmojiSettings *qxms, const QString &file);
+    QXmojiSettingsPrivate(QXmojiSettings *qxms, const QString &filename);
 
     void restore();
     void syncAndWatch(bool updateTimestamp = true);
@@ -47,9 +47,9 @@ class QXmojiSettingsPrivate
 #define K_WAIT QStringLiteral("wait")
 
 QXmojiSettingsPrivate::QXmojiSettingsPrivate(
-	QXmojiSettings *qxms, const QString &file) :
+	QXmojiSettings *qxms, const QString &filename) :
     q_ptr(qxms),
-    file(file),
+    file(filename),
     settings(file, QSettings::IniFormat),
     watcher(),
     timer(),
