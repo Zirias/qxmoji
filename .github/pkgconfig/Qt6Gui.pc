@@ -1,0 +1,12 @@
+prefix=/usr
+exec_prefix=${prefix}
+bindir=${prefix}/lib/x86_64-linux-gnu/qt6/bin
+libexecdir=${prefix}/libexec/x86_64-linux-gnu/qt6
+libdir=${prefix}/lib/x86_64-linux-gnu/qt6
+includedir=${prefix}/include/x86_64-linux-gnu/qt6
+
+Name: Qt6 Gui
+Description: Qt Gui module
+Version: 6.2.4
+Libs: -L${libdir} -lQt6Gui
+Cflags: -I${includedir}/QtGui -I${includedir} -DQT_GUI_LIB

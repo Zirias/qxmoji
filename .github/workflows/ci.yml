@@ -1,0 +1,44 @@
+name: CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+env:
+  CI_CFLAGS: -O2 -Wall -Wextra -Wshadow -Werror -pedantic
+  CI_CSTD: -std=c11
+  CI_CXXSTD: -std=c++17
+
+jobs:
+  build-qt5:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    - uses: awalsh128/cache-apt-pkgs-action@latest
+      with:
+        packages: libxcb-xtest0-dev qtbase5-dev libqt5x11extras5-dev
+        version: 1
+    - name: build
+      run: |
+        make -j4 QT_VERSION=5 \
+            CFLAGS="${CI_CSTD} ${CI_CFLAGS}" \
+            CXXFLAGS="${CI_CXXSTD} ${CI_CFLAGS}"
+  build-qt6:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: recursive
+    - uses: awalsh128/cache-apt-pkgs-action@latest
+      with:
+        packages: libxcb-xtest0-dev qt6-base-dev qt6-base-dev-tools
+        version: 1
+    - name: build
+      run: |
+        PKG_CONFIG_PATH=$(pwd)/.github/pkgconfig make -j4 \
+            CFLAGS="${CI_CSTD} ${CI_CFLAGS}" \
+            CXXFLAGS="${CI_CXXSTD} ${CI_CFLAGS}"
