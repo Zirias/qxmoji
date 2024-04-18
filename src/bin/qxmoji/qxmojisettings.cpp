@@ -32,9 +32,10 @@ class QXmojiSettingsPrivate
 
     QXmojiSettingsPrivate(QXmojiSettings *qxms, const QString &file);
 
-    void syncAndWatch();
+    void restore();
+    void syncAndWatch(bool updateTimestamp = true);
     void set(const QString &key, const QVariant &value);
-    void updateFromFile();
+    void updateFromFile(int tries);
 };
 
 #define K_HISTORY QStringLiteral("history")
@@ -52,6 +53,7 @@ QXmojiSettingsPrivate::QXmojiSettingsPrivate(
     settings(file, QSettings::IniFormat),
     watcher(),
     timer(),
+    lastModified(QDateTime::currentDateTime()),
     history(settings.value(K_HISTORY).toString()),
     size(settings.value(K_SIZE, QSize(600, 240)).toSize()),
     scale(settings.value(K_SCALE, EmojiFont::Scale::Small)
@@ -65,27 +67,34 @@ QXmojiSettingsPrivate::QXmojiSettingsPrivate(
 {
     if (wait < 0) wait = 0;
     if (wait > 500) wait = 500;
-    if (!QFileInfo::exists(file))
-    {
-	settings.setValue(K_HISTORY, history);
-	settings.setValue(K_SCALE, scale);
-	settings.setValue(K_SHOWN, shown);
-	settings.setValue(K_SINGLEINSTANCE, singleInstance);
-	settings.setValue(K_SIZE, size);
-	settings.setValue(K_TRAYMODE, trayMode);
-	settings.setValue(K_WAIT, wait);
-    }
+    if (!QFileInfo::exists(file)) restore();
+    else syncAndWatch();
+}
+
+void QXmojiSettingsPrivate::restore()
+{
+    settings.setValue(K_HISTORY, history);
+    settings.setValue(K_SCALE, scale);
+    settings.setValue(K_SHOWN, shown);
+    settings.setValue(K_SINGLEINSTANCE, singleInstance);
+    settings.setValue(K_SIZE, size);
+    settings.setValue(K_TRAYMODE, trayMode);
+    settings.setValue(K_WAIT, wait);
     syncAndWatch();
 }
 
-void QXmojiSettingsPrivate::syncAndWatch()
+void QXmojiSettingsPrivate::syncAndWatch(bool updateTimestamp)
 {
     settings.sync();
     if (nfs)
     {
-	timer.start(2500);
-	QFileInfo info(file);
-	lastModified = info.lastModified();
+	timer.start(1000);
+	if (updateTimestamp)
+	{
+	    QFileInfo info(file);
+	    QDateTime mod = info.lastModified();
+	    if (mod.isValid()) lastModified = mod;
+	}
     }
     else watcher.addPath(file);
 }
@@ -98,11 +107,29 @@ void QXmojiSettingsPrivate::set(const QString &key, const QVariant &value)
     syncAndWatch();
 }
 
-void QXmojiSettingsPrivate::updateFromFile()
+void QXmojiSettingsPrivate::updateFromFile(int tries)
 {
     Q_Q(QXmojiSettings);
 
-    settings.sync();
+    if (!QFileInfo::exists(file))
+    {
+	if (tries)
+	{
+	    QTimer::singleShot(100, q, [this, tries](){
+		    updateFromFile(tries - 1); });
+	}
+	else restore();
+	return;
+    }
+    if (nfs)
+    {
+	QFileInfo info(file);
+	QDateTime mod = info.lastModified();
+	if (!mod.isValid() || mod == lastModified) return;
+	lastModified = mod;
+    }
+    syncAndWatch(false);
+
     QString nhistory = settings.value(K_HISTORY).toString();
     QSize nsize = settings.value(K_SIZE, QSize(600, 240)).toSize();
     EmojiFont::Scale nscale = settings.value(K_SCALE,
@@ -112,7 +139,6 @@ void QXmojiSettingsPrivate::updateFromFile()
     int nwait = settings.value(K_WAIT, 50).toInt();
     bool nshown = settings.value(K_SHOWN, true).toBool();
     bool nsingleInstance = settings.value(K_SINGLEINSTANCE, true).toBool();
-    if (!nfs) watcher.addPath(file);
 
     if (nhistory != history)
     {
@@ -163,18 +189,10 @@ void QXmojiSettingsPrivate::updateFromFile()
 QXmojiSettings::QXmojiSettings(const QString &file) :
     d_ptr(new QXmojiSettingsPrivate(this, file))
 {
-    if (d_ptr->nfs) connect(&d_ptr->timer, &QTimer::timeout,
-	    [this](){
-		QFileInfo info(d_ptr->file);
-		QDateTime mod = info.lastModified();
-		if (mod != d_ptr->lastModified)
-		{
-		    d_ptr->lastModified = mod;
-		    d_ptr->updateFromFile();
-		}
-	    });
-    else connect(&d_ptr->watcher, &QFileSystemWatcher::fileChanged,
-	    [this](){ d_ptr->updateFromFile(); });
+    if (d_ptr->nfs) connect(&d_ptr->timer, &QTimer::timeout, [this](){
+	    d_ptr->updateFromFile(5); });
+    else connect(&d_ptr->watcher, &QFileSystemWatcher::fileChanged, [this](){
+	    d_ptr->updateFromFile(5); });
 }
 
 QXmojiSettings::~QXmojiSettings() {}
