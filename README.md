@@ -98,3 +98,13 @@ to install qXmoji to the selected prefix and DESTDIR.
 If your default `make` tool is not GNU make, the latter is probably installed
 using the name `gmake` (e.g. on BSD systems), so type that instead of `make`.
 
+## Building on Debian / Ubuntu Linux
+
+Install the needed dependencies.
+
+    sudo apt install qtbase5-dev libqt5x11extras5-dev libxcb-xtest0-dev -y
+    sudo apt install build-essential -y
+
+After that you can continue with the build instructions given above.  
+
+This was tested on Debian 12 amd64 with GCC 12.2.0 (Debian 12.2.0-14).
