@@ -8,11 +8,15 @@
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
 #define qtnativeres long
+#else
+#define qtnativeres qintptr
+#endif
+
+#if QT_VERSION < QT_VERSION_CHECK(6, 5, 0)
 typedef const void EmojiArg;
 #define EMOJI(x) ((const Emoji *)(x))
 #define EMOJIARG(x) ((EmojiArg *)(x))
 #else
-#define qtnativeres qintptr
 C_CLASS_DECL(Emoji);
 typedef const Emoji EmojiArg;
 #define EMOJI(x) (x)
