@@ -296,8 +296,7 @@ int main(int argc, char **argv)
 	}
     }
     offset = 0;
-    puts("\n};\n\n"
-	    "SOLOCAL const EmojiGroup emojiint_groups[] = {");
+    puts("\n};\n\nconst EmojiGroup emojiint_groups[] = {");
     for (size_t i = 0; i < ngroups; ++i)
     {
 	if (i) puts(",");
