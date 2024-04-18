@@ -1,22 +1,24 @@
 qxmoji_VERSION=		0.5
 qxmoji_USES=		qt
-qxmoji_USE_QT=		Core Gui Network Widgets
+qxmoji_USE_QT=		Gui Network Widgets
 qxmoji_USE_QT5=		X11Extras
 qxmoji_MODULES=		emojisearch \
 			main \
+			nfsdetect \
 			xcbadapter \
 			xkeyinjector
 qxmoji_CXXMODULES=	aboutdlg \
 			emoji \
 			flowlayout \
-			guimain
+			guimain \
+			settingsdlg
 qxmoji_MOCMODULES=	emojibutton \
 			emojifont \
 			emojihistory \
 			searchfield \
-			settingsdlg \
 			singleinstance \
 			qxmoji \
+			qxmojisettings \
 			qxmojiwin
 qxmoji_QRC=		icon
 qxmoji_CFLAGS=		-fPIC

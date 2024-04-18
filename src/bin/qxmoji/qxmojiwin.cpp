@@ -89,6 +89,7 @@ class QXmojiWinPrivate {
     const EmojiFont *font;
     FlowLayout *results;
     QMenu *contextMenu;
+    InitEmojiQueue *ieq;
     bool closeOnMinimize;
     bool closeIsMinimize;
     bool hideInTaskbar;
@@ -171,7 +172,7 @@ QXmojiWin::QXmojiWin(QMenu *contextMenu, const EmojiFont *font,
     tabs->setTabToolTip(tn++, "History");
 
     size_t ngroups = EmojiGroup_count();
-    auto ieq = new InitEmojiQueue(ngroups, tabs);
+    d_ptr->ieq = new InitEmojiQueue(ngroups, tabs);
     for (size_t n = 0; n < ngroups; ++n)
     {
 	const EmojiGroup *group = EmojiGroup_at(n);
@@ -182,7 +183,7 @@ QXmojiWin::QXmojiWin(QMenu *contextMenu, const EmojiFont *font,
 	{
 	    const Emoji *emoji = EmojiGroup_emoji(group, m);
 	    EmojiButton *btn = buttons[bn++];
-	    ieq->enqueue(n, btn, emoji);
+	    d_ptr->ieq->enqueue(n, btn, emoji);
 	    layout->addWidget(btn);
 	}
 	emojis->setLayout(layout);
@@ -236,8 +237,6 @@ QXmojiWin::QXmojiWin(QMenu *contextMenu, const EmojiFont *font,
 		    hb->setEmoji(history->at(i));
 		}
 	    });
-
-    ieq->run();
 }
 
 QXmojiWin::~QXmojiWin() {}
@@ -280,6 +279,12 @@ void QXmojiWin::showEvent(QShowEvent *ev)
     if (d->pos != QPoint(-1, -1)) windowHandle()->setPosition(d->pos);
     QWidget::showEvent(ev);
     d->closeIsMinimize = false;
+    if (d->ieq)
+    {
+	auto q = d->ieq;
+	d->ieq = 0;
+	q->run();
+    }
 }
 
 bool QXmojiWin::nativeEvent(const QByteArray &eventType,

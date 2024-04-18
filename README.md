@@ -12,12 +12,15 @@ Color Emoji`.
 ## Features
 
 * Works with "plain" X11 events, so it can send emojis to any window,
-  independent of toolkits like GTK or Qt.
+  independent of toolkits like GTK or Qt, or XIM (input method) extensions.
 * Search (as you type) for an emoji by its (english) name. The search box
   temporarily grabs the keyboard to allow typing and immediately releases it
   again when the mouse pointer leaves it.
 * Maintains a history of the 100 least recently used emojis, this list is
   automatically persisted.
+* Offers single-instance (per user and machine) and systray modes.
+* Keeps settings in sync between different instances, even across machines
+  when using NFS.
 
 ## How it works
 
@@ -67,10 +70,12 @@ everything needed for building.
 
 Dependencies:
 
-* Qt libs: `Core`, `Gui` and `Widgets`, plus `X11Extras` for Qt5
-* xcb libs: `libxcb-xtest`
-* Qt's `moc` and `rcc` utilities
+* C and C++ compilers understanding GNU commandline options and C11/C++17
+  language standards (GNU GCC and LLVM clang work fine)
 * GNU make
+* Qt's `moc` and `rcc` utilities
+* Qt libs: `Core`, `Gui`, `Network` and `Widgets`, plus `X11Extras` for Qt5
+* xcb libs: `libxcb-xtest`
 
 To build qXmoji with Qt6, just type
 

@@ -5,6 +5,7 @@
 
 #include "guimain.h"
 
+#include <fcntl.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,7 +23,18 @@ static void sighdl(int sig)
 
 static void started(void)
 {
-    if (detach) kill(getppid(), SIGHUP);
+    if (detach)
+    {
+	int nulldev = open("/dev/null", O_RDWR);
+	if (nulldev >= 0)
+	{
+	    dup2(nulldev, STDIN_FILENO);
+	    dup2(nulldev, STDOUT_FILENO);
+	    dup2(nulldev, STDERR_FILENO);
+	    close(nulldev);
+	}
+	kill(getppid(), SIGHUP);
+    }
 }
 
 static void dodetach(void)

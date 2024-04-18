@@ -8,60 +8,60 @@
 #include <QSpinBox>
 #include <QVBoxLayout>
 
-class SettingsDlgPrivate
+SettingsDlg::SettingsDlg(QWidget *parent, QXmojiSettings *settings) :
+    QDialog(parent)
 {
-    Q_DISABLE_COPY(SettingsDlgPrivate)
-    Q_DECLARE_PUBLIC(SettingsDlg)
-    SettingsDlg *const q_ptr;
+    setWindowTitle("qXmoji settings");
 
-    QLabel singleLabel;
-    QComboBox singleSelect;
-    QLabel trayLabel;
-    QComboBox traySelect;
-    QLabel scaleLabel;
-    QComboBox scaleSelect;
-    QLabel waitLabel;
-    QSpinBox waitSelect;
+    QWidget *settingsForm = new QWidget(this);
+    QFormLayout *layout = new QFormLayout(settingsForm);
+    int l,t,r,b;
+    layout->getContentsMargins(&l, &t, &r, &b);
+    layout->setContentsMargins(0, t, 0, b);
+    layout->setLabelAlignment(Qt::AlignRight);
 
-    SettingsDlgPrivate(SettingsDlg *);
-};
-
-SettingsDlgPrivate::SettingsDlgPrivate(SettingsDlg *dlg) :
-    q_ptr(dlg),
-    singleLabel("Instance mode:"),
-    trayLabel("Tray mode:"),
-    scaleLabel("Scale size:"),
-    waitLabel("Keymap reset wait (ms):")
-{
-    singleLabel.setToolTip(
+    QLabel *singleLabel = new QLabel("Instance mode:", this);
+    singleLabel->setToolTip(
 	    "In \"single\" mode, only one instance of qXmoji is allowed to\n"
 	    "run per user on the local machine, and starting another one\n"
 	    "will just bring the running instance to the front.\n"
 	    "In \"multi\" mode, no checks for already running instances\n"
 	    "are done.");
-    singleSelect.setToolTip(singleLabel.toolTip());
-    singleSelect.addItem("Single", true);
-    singleSelect.addItem("Multi", false);
-    trayLabel.setToolTip(
+    QComboBox *singleSelect = new QComboBox(this);
+    singleSelect->setToolTip(singleLabel->toolTip());
+    singleSelect->addItem("Single", true);
+    singleSelect->addItem("Multi", false);
+    layout->addRow(singleLabel, singleSelect);
+
+    QLabel *trayLabel = new QLabel("Tray mode:", this);
+    trayLabel->setToolTip(
 	    "Disabled: Do not use a tray icon.\n"
 	    "Enabled: Use a tray icon, qXmoji keeps running on window close.\n"
 	    "Minimize: Use a tray icon with \"minimize to tray\", closing\n"
 	    "the window still exits.");
-    traySelect.setToolTip(trayLabel.toolTip());
+    QComboBox *traySelect = new QComboBox(this);
+    traySelect->setToolTip(trayLabel->toolTip());
     QMetaEnum trayEnum = QMetaEnum::fromType<QXmoji::TrayMode>();
     for (int i = 0; i < trayEnum.keyCount(); ++i)
     {
-	traySelect.addItem(trayEnum.key(i), trayEnum.value(i));
+	traySelect->addItem(trayEnum.key(i), trayEnum.value(i));
     }
-    scaleLabel.setToolTip("Scale up the size of displayed Emojis.\n"
+    layout->addRow(trayLabel, traySelect);
+
+    QLabel *scaleLabel = new QLabel("Scale size:", this);
+    scaleLabel->setToolTip("Scale up the size of displayed Emojis.\n"
 	    "Tiny means no scaling (same size as default window font)");
-    scaleSelect.setToolTip(scaleLabel.toolTip());
+    QComboBox *scaleSelect = new QComboBox(this);
+    scaleSelect->setToolTip(scaleLabel->toolTip());
     QMetaEnum scaleEnum = QMetaEnum::fromType<EmojiFont::Scale>();
     for (int i = 0; i < scaleEnum.keyCount(); ++i)
     {
-	scaleSelect.addItem(scaleEnum.key(i), scaleEnum.value(i));
+	scaleSelect->addItem(scaleEnum.key(i), scaleEnum.value(i));
     }
-    waitLabel.setToolTip("qXmoji sends emoji codepoints as key press events.\n"
+    layout->addRow(scaleLabel, scaleSelect);
+
+    QLabel *waitLabel = new QLabel("Keymap reset wait (ms):", this);
+    waitLabel->setToolTip("qXmoji sends emoji codepoints as key press events.\n"
 	    "Therefore, the keyboard mapping must be temporarily changed.\n"
 	    "This is the time in ms to wait before restoring the mapping\n"
 	    "after sending the keyboard events.\n"
@@ -69,27 +69,13 @@ SettingsDlgPrivate::SettingsDlgPrivate(SettingsDlg *dlg) :
 	    "see basic (ASCII) characters instead.\n"
 	    "It won't help when a single emoji is shown as two or more\n"
 	    "symbols, this is handled by the receiving client.");
-    waitSelect.setToolTip(waitLabel.toolTip());
-    waitSelect.setMinimum(0);
-    waitSelect.setMaximum(500);
-    waitSelect.setSingleStep(10);
-}
+    QSpinBox *waitSelect = new QSpinBox(this);
+    waitSelect->setToolTip(waitLabel->toolTip());
+    waitSelect->setMinimum(0);
+    waitSelect->setMaximum(500);
+    waitSelect->setSingleStep(10);
+    layout->addRow(waitLabel, waitSelect);
 
-SettingsDlg::SettingsDlg(QWidget *parent) :
-    QDialog(parent),
-    d_ptr(new SettingsDlgPrivate(this))
-{
-    setWindowTitle("qXmoji settings");
-    QWidget *settingsForm = new QWidget(this);
-    QFormLayout *layout = new QFormLayout(settingsForm);
-    int l,t,r,b;
-    layout->getContentsMargins(&l, &t, &r, &b);
-    layout->setContentsMargins(0, t, 0, b);
-    layout->setLabelAlignment(Qt::AlignRight);
-    layout->addRow(&d_ptr->singleLabel, &d_ptr->singleSelect);
-    layout->addRow(&d_ptr->trayLabel, &d_ptr->traySelect);
-    layout->addRow(&d_ptr->scaleLabel, &d_ptr->scaleSelect);
-    layout->addRow(&d_ptr->waitLabel, &d_ptr->waitSelect);
     settingsForm->setLayout(layout);
 
     QVBoxLayout *dlgLayout = new QVBoxLayout(this);
@@ -99,48 +85,49 @@ SettingsDlg::SettingsDlg(QWidget *parent) :
     dlgLayout->addWidget(buttons);
     setLayout(dlgLayout);
 
-    connect(&d_ptr->singleSelect, QOverload<int>::of(&QComboBox::activated),
-	    [this](){ emit singleInstanceChanged(
-		d_ptr->singleSelect.currentData().toBool());
+    connect(singleSelect, QOverload<int>::of(&QComboBox::activated),
+	    [settings, singleSelect](){
+		settings->setSingleInstance(
+			singleSelect->currentData().toBool());
 	    });
-    connect(&d_ptr->traySelect, QOverload<int>::of(&QComboBox::activated),
-	    [this](){ emit trayModeChanged(
-		d_ptr->traySelect.currentData().value<QXmoji::TrayMode>());
+    connect(traySelect, QOverload<int>::of(&QComboBox::activated),
+	    [settings, traySelect](){
+		settings->setTrayMode(
+			traySelect->currentData().value<QXmoji::TrayMode>());
 	    });
-    connect(&d_ptr->scaleSelect, QOverload<int>::of(&QComboBox::activated),
-	    [this](){ emit scaleChanged(
-		d_ptr->scaleSelect.currentData().value<EmojiFont::Scale>());
+    connect(scaleSelect, QOverload<int>::of(&QComboBox::activated),
+	    [settings, scaleSelect](){
+		settings->setScale(
+			scaleSelect->currentData().value<EmojiFont::Scale>());
 	    });
-    connect(&d_ptr->waitSelect, QOverload<int>::of(&QSpinBox::valueChanged),
-	    [this](int ms){ emit waitMsChanged(ms); });
-}
+    connect(waitSelect, QOverload<int>::of(&QSpinBox::valueChanged),
+	    [settings](int ms){ settings->setWait(ms); });
 
-SettingsDlg::~SettingsDlg() {}
 
-void SettingsDlg::setSingleInstance(bool singleInstance)
-{
-    Q_D(SettingsDlg);
-    int index = d->singleSelect.findData(singleInstance);
-    if (index >= 0) d->singleSelect.setCurrentIndex(index);
-}
+    auto setSingleInstance = [singleSelect](bool singleInstance){
+	int index = singleSelect->findData(singleInstance);
+	if (index >= 0) singleSelect->setCurrentIndex(index);
+    };
+    setSingleInstance(settings->singleInstance());
+    connect(settings, &QXmojiSettings::singleInstanceChangedExt,
+	    setSingleInstance);
 
-void SettingsDlg::setTrayMode(QXmoji::TrayMode mode)
-{
-    Q_D(SettingsDlg);
-    int index = d->traySelect.findData(mode);
-    if (index >= 0) d->traySelect.setCurrentIndex(index);
-}
+    auto setTrayMode = [traySelect](QXmoji::TrayMode mode){
+	int index = traySelect->findData(mode);
+	if (index >= 0) traySelect->setCurrentIndex(index);
+    };
+    setTrayMode(settings->trayMode());
+    connect(settings, &QXmojiSettings::trayModeChangedExt, setTrayMode);
 
-void SettingsDlg::setScale(EmojiFont::Scale scale)
-{
-    Q_D(SettingsDlg);
-    int index = d->scaleSelect.findData(scale);
-    if (index >= 0) d->scaleSelect.setCurrentIndex(index);
-}
+    auto setScale = [scaleSelect](EmojiFont::Scale scale){
+	int index = scaleSelect->findData(scale);
+	if (index >= 0) scaleSelect->setCurrentIndex(index);
+    };
+    setScale(settings->scale());
+    connect(settings, &QXmojiSettings::scaleChangedExt, setScale);
 
-void SettingsDlg::setWaitMs(int waitMs)
-{
-    Q_D(SettingsDlg);
-    d->waitSelect.setValue(waitMs);
+    auto setWait = [waitSelect](int ms){ waitSelect->setValue(ms); };
+    setWait(settings->wait());
+    connect(settings, &QXmojiSettings::waitChangedExt, setWait);
 }
 
