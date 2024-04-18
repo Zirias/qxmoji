@@ -10,6 +10,9 @@ env:
   CI_CFLAGS: -O2 -Wall -Wextra -Wshadow -Werror -pedantic
   CI_CSTD: -std=c11
   CI_CXXSTD: -std=c++17
+  CI_DEPS_XCB: libxcb-xtest0-dev
+  CI_DEPS_QT5: qtbase5-dev libqt5x11extras5-dev
+  CI_DEPS_QT6: qt6-base-dev qt6-base-dev-tools
 
 jobs:
   build-qt5:
@@ -18,10 +21,9 @@ jobs:
     - uses: actions/checkout@v4
       with:
         submodules: recursive
-    - uses: awalsh128/cache-apt-pkgs-action@latest
-      with:
-        packages: libxcb-xtest0-dev qtbase5-dev libqt5x11extras5-dev
-        version: 1
+    - name: build-depends
+      run: |
+        sudo apt-get -y install ${CI_DEPS_XCB} ${CI_DEPS_QT5}
     - name: build
       run: |
         make -j4 QT_VERSION=5 \
@@ -33,10 +35,9 @@ jobs:
     - uses: actions/checkout@v4
       with:
         submodules: recursive
-    - uses: awalsh128/cache-apt-pkgs-action@latest
-      with:
-        packages: libxcb-xtest0-dev qt6-base-dev qt6-base-dev-tools
-        version: 1
+    - name: build-depends
+      run: |
+        sudo apt-get -y install ${CI_DEPS_XCB} ${CI_DEPS_QT6}
     - name: build
       run: |
         PKG_CONFIG_PATH=$(pwd)/.github/pkgconfig make -j4 \
