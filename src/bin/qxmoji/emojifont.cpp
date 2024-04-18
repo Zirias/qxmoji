@@ -48,6 +48,7 @@ int EmojiFontPrivate::scaledSize()
     switch (scale)
     {
 	case EmojiFont::Scale::Tiny: return defpointsz;
+	default:
 	case EmojiFont::Scale::Small: return defpointsz + defpointsz/2;
 	case EmojiFont::Scale::Medium: return 2*defpointsz;
 	case EmojiFont::Scale::Large: return 3*defpointsz;
