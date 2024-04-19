@@ -9,6 +9,8 @@ Emoji` font for that, falling back to `Noto Emoji` and then to whatever is
 configured as the default font. So, for best visual results, install `Noto
 Color Emoji`.
 
+![qXmoji main window](.github/screenshots/mainwindow.png?raw=true)
+
 ## Features
 
 * Works with "plain" X11 events, so it can send emojis to any window,
