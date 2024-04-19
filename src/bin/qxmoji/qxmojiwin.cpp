@@ -113,6 +113,7 @@ QXmojiWin::QXmojiWin(QMenu *contextMenu, const EmojiFont *font,
     QWidget(nullptr, Qt::WindowDoesNotAcceptFocus),
     d_ptr(new QXmojiWinPrivate(this, font, contextMenu))
 {
+    setWindowTitle("qXmoji");
     setAttribute(Qt::WA_AlwaysShowToolTips);
     QTabWidget *tabs = new QTabWidget(this);
     tabs->tabBar()->setFont(font->font());
