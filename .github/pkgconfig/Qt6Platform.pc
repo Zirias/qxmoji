@@ -9,4 +9,4 @@ mkspecsdir=${prefix}/lib/x86_64-linux-gnu/qt6/mkspecs
 Name: Qt6 Platform
 Description: Qt Platform module
 Version: 6.2.4
-Cflags: -I${mkspecsdir}/freebsd-clang -I${includedir}
+Cflags: -I${mkspecsdir}/linux-g++-64 -I${includedir}
