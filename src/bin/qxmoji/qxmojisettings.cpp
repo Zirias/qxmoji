@@ -304,3 +304,4 @@ void QXmojiSettings::setWait(int wait)
     emit waitChanged(d->wait);
 }
 
+#include "moc_qxmojisettings.cpp"

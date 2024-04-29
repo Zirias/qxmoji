@@ -1,7 +1,4 @@
 qxmoji_VERSION=		0.6
-qxmoji_USES=		qt
-qxmoji_USE_QT=		Gui Network Widgets
-qxmoji_USE_QT5=		X11Extras
 qxmoji_MODULES=		emojisearch \
 			main \
 			nfsdetect \
@@ -20,11 +17,14 @@ qxmoji_MOCMODULES=	emojibutton \
 			qxmoji \
 			qxmojisettings \
 			qxmojiwin
+qxmoji_USE_QT=		Gui Network Widgets
+qxmoji_USE_QT5=		X11Extras
 qxmoji_QRC=		icon
-qxmoji_CFLAGS=		-fPIC
-qxmoji_CXXFLAGS=	-fPIC
+qxmoji_MOCMODE=		included
 qxmoji_PKGDEPS=		xcb \
 			xcb-xtest
+qxmoji_CFLAGS=		-fPIC
+qxmoji_CXXFLAGS=	-fPIC
 qxmoji_SUB_FILES=	decl.h \
 			qxmoji.desktop
 qxmoji_SUB_LIST=	bindir=$(bindir)

@@ -95,3 +95,4 @@ void EmojiHistory::load(const QString &str)
     emit changed(changelen);
 }
 
+#include "moc_emojihistory.cpp"

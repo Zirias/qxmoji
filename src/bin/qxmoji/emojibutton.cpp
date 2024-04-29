@@ -56,3 +56,4 @@ void EmojiButton::mousePressEvent(QMouseEvent *ev)
     }
 }
 
+#include "moc_emojibutton.cpp"

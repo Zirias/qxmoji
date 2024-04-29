@@ -20,3 +20,4 @@ void SearchField::leaveEvent(QEvent *ev)
     QLineEdit::leaveEvent(ev);
 }
 
+#include "moc_searchfield.cpp"

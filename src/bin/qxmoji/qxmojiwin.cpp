@@ -306,3 +306,4 @@ bool QXmojiWin::nativeEvent(const QByteArray &eventType,
     return blocked;
 }
 
+#include "moc_qxmojiwin.cpp"

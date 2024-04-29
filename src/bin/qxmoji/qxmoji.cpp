@@ -234,3 +234,5 @@ XcbAdapter *QXmoji::xcb()
     Q_D(QXmoji);
     return d->xcb;
 }
+
+#include "moc_qxmoji.cpp"

@@ -77,3 +77,4 @@ void SingleInstance::stopInstance()
     d->server.close();
 }
 
+#include "moc_singleinstance.cpp"

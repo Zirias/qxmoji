@@ -8,6 +8,8 @@ EMOJIGEN_MAKEARGS=	DESTDIR=../bin HOSTBUILD=1 STATIC=0 prefix= bindir=
 EMOJIGEN_MAKEGOAL=	install
 EMOJIGEN_CLEANGOAL=	distclean
 
+USES=	fdofiles gen qt sub
+
 include zimk/zimk.mk
 
 $(call zinc,src/bin/qxmoji/qxmoji.mk)

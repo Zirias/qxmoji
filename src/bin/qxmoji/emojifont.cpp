@@ -77,3 +77,5 @@ void EmojiFont::setScale(EmojiFont::Scale scale)
     d->font.setPointSize(d->scaledSize());
     emit fontChanged();
 }
+
+#include "moc_emojifont.cpp"
