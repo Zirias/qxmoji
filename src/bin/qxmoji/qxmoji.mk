@@ -23,8 +23,6 @@ qxmoji_QRC=		icon
 qxmoji_MOCMODE=		included
 qxmoji_PKGDEPS=		xcb \
 			xcb-xtest
-qxmoji_CFLAGS=		-fPIC
-qxmoji_CXXFLAGS=	-fPIC
 qxmoji_SUB_FILES=	decl.h \
 			qxmoji.desktop
 qxmoji_SUB_LIST=	bindir=$(bindir)
