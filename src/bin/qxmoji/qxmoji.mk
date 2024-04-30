@@ -27,7 +27,7 @@ qxmoji_SUB_FILES=	decl.h \
 			qxmoji.desktop
 qxmoji_SUB_LIST=	bindir=$(bindir)
 qxmoji_GEN=		EGEN
-qxmoji_EGEN_FILES=	emojidata.cpp:contrib/emoji-test.txt
+qxmoji_EGEN_FILES=	emojidata.cpp:contrib
 qxmoji_ICONSIZES=	16x16 32x32 48x48 256x256
 qxmoji_DESKTOPFILE=	qxmoji
 qxmoji_DOCS=		README.md

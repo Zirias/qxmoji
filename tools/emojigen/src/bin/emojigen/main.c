@@ -7,6 +7,9 @@
 typedef struct Emoji Emoji;
 typedef struct EmojiGroup EmojiGroup;
 typedef struct EmojiBucket EmojiBucket;
+typedef struct TranslationEntry TranslationEntry;
+typedef struct TranslationBucket TranslationBucket;
+typedef struct EmojiTranslations EmojiTranslations;
 
 struct Emoji
 {
@@ -31,9 +34,30 @@ struct EmojiBucket
     size_t *emojis;
 };
 
+struct TranslationEntry
+{
+    char16_t *emoji;
+    char *text;
+};
+
+struct TranslationBucket
+{
+    size_t capa;
+    size_t size;
+    TranslationEntry **entries;
+};
+
+struct EmojiTranslations
+{
+    FILE *ts;
+    TranslationBucket buckets[1024];
+};
+
 static size_t ngroups;
 static EmojiGroup **groups;
 static EmojiBucket buckets[1024];
+static EmojiTranslations *translations[32];
+static int ntranslations;
 
 static char line[1024];
 
@@ -203,22 +227,204 @@ static const char *parsegroup(void)
     return c;
 }
 
+static size_t fromutf8(char32_t *ucs4, size_t sz, const char *utf8)
+{
+    const unsigned char *c = (const unsigned char *)utf8;
+    size_t i = 0;
+
+    while (*c && i < sz)
+    {
+	if (*c < 0x80)
+	{
+	    ucs4[i++] = *c++;
+	    continue;
+	}
+	char32_t u = 0;
+	int f = 0;
+	if ((*c & 0xe0) == 0xc0)
+	{
+	    u = (*c & 0x1f);
+	    f = 1;
+	}
+	else if ((*c & 0xf0) == 0xe0)
+	{
+	    u = (*c & 0xf);
+	    f = 2;
+	}
+	else if ((*c & 0xf8) == 0xf0)
+	{
+	    u = (*c & 0x7);
+	    f = 3;
+	}
+	else return 0;
+	for (; f && *++c; --f)
+	{
+	    if ((*c & 0xc0) != 0x80) return 0;
+	    u <<= 6;
+	    u |= (*c & 0x3f);
+	}
+	if (f) return 0;
+	ucs4[i++] = u;
+	++c;
+    }
+    if (i == sz) return 0;
+    ucs4[i++] = 0;
+    return i;
+}
+
+static void parseTranslations(EmojiTranslations *self, FILE *ann)
+{
+    char utf8[32];
+    char32_t ucs4[16];
+
+    while (fgets(line, sizeof line, ann))
+    {
+	char *c = line;
+	skipws(c);
+	if (!match(c, "<annotation")) continue;
+	skipws(c);
+	if (!match(c, "cp=\"")) continue;
+	char *e = c+1;
+	while (*e && *e != '"') ++e;
+	if (*e != '"') continue;
+	size_t utf8len = e - c;
+	if (utf8len > 31) continue;
+	memcpy(utf8, c, utf8len);
+	utf8[utf8len] = 0;
+	c = e+1;
+	skipws(c);
+	if (!match(c, "type=\"tts\"")) continue;
+	skipws(c);
+	if (*c != '>') continue;
+	e = ++c;
+	while (*e && *e != '<') ++e;
+	if (*e != '<') continue;
+	*e = 0;
+	size_t cplen = fromutf8(ucs4, sizeof ucs4 / sizeof *ucs4, utf8);
+	if (!cplen) continue;
+	TranslationEntry *entry = xmalloc(sizeof *entry);
+	entry->emoji = toutf16(ucs4);
+	entry->text = copystr(c);
+	int hash = hashstr(entry->emoji);
+	TranslationBucket *bucket = self->buckets + hash;
+	if (bucket->capa == bucket->size)
+	{
+	    bucket->capa += 16;
+	    bucket->entries = xrealloc(bucket->entries,
+		    bucket->capa * sizeof *bucket->entries);
+	}
+	bucket->entries[bucket->size++] = entry;
+    }
+}
+
+static EmojiTranslations *EmojiTranslations_create(
+	const char *path, const char *outbasename, const char *lang)
+{
+    char filenmbuf[8192];
+
+    FILE *ann1 = 0;
+    FILE *ann2 = 0;
+    FILE *out = 0;
+    EmojiTranslations *self = 0;
+
+    snprintf(filenmbuf, sizeof filenmbuf, "%s/cldr/annotations/%s.xml",
+	    path, lang);
+    ann1 = fopen(filenmbuf, "r");
+    if (!ann1) goto done;
+
+    snprintf(filenmbuf, sizeof filenmbuf, "%s/cldr/annotationsDerived/%s.xml",
+	    path, lang);
+    ann2 = fopen(filenmbuf, "r");
+    if (!ann2) goto done;
+
+    snprintf(filenmbuf, sizeof filenmbuf, "%s_%s.ts", outbasename, lang);
+    out = fopen(filenmbuf, "w");
+    if (!out) goto done;
+
+    self = xmalloc(sizeof *self);
+    memset(self, 0, sizeof *self);
+
+    parseTranslations(self, ann1);
+    parseTranslations(self, ann2);
+
+    fprintf(out, "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
+	    "<!DOCTYPE TS>\n"
+	    "<TS version=\"2.0\" language=\"%s\">\n"
+	    "  <context>\n"
+	    "    <name>EmojiData</name>\n", lang);
+    self->ts = out;
+    out = 0;
+
+done:
+    if (out) fclose(out);
+    if (ann2) fclose(ann2);
+    if (ann1) fclose(ann1);
+    return self;
+}
+
+static const char *xmlescape(const char *str)
+{
+    static char escaped[8192];
+    const char *c = str;
+    size_t i = 0;
+    for (; i < sizeof escaped - 6; ++c)
+    {
+	switch (*c)
+	{
+	    case '<':
+		escaped[i++] = '&';
+		escaped[i++] = 'l';
+		escaped[i++] = 't';
+		escaped[i++] = ';';
+		break;
+	    case '>':
+		escaped[i++] = '&';
+		escaped[i++] = 'g';
+		escaped[i++] = 't';
+		escaped[i++] = ';';
+		break;
+	    case '&':
+		escaped[i++] = '&';
+		escaped[i++] = 'a';
+		escaped[i++] = 'm';
+		escaped[i++] = 'p';
+		escaped[i++] = ';';
+		break;
+	    default:
+		escaped[i++] = *c;
+	}
+    }
+    escaped[i] = 0;
+    return escaped;
+}
+
 int main(int argc, char **argv)
 {
+    char emojitxtnm[8192];
+
     int rc = EXIT_FAILURE;
     FILE *emojitxt = 0;
     EmojiGroup *group = 0;
 
     if (argc < 2)
     {
-	fputs("Usage: emojigen emoji-test.txt\n", stderr);
+	fputs("Usage: emojigen datadir [tsbasename [lang [lang ..]]]\n",
+		stderr);
 	goto done;
     }
 
-    if (!(emojitxt = fopen(argv[1], "r")))
+    snprintf(emojitxtnm, sizeof emojitxtnm, "%s/emoji-test.txt", argv[1]);
+    if (!(emojitxt = fopen(emojitxtnm, "r")))
     {
-	fprintf(stderr, "Error opening `%s' for reading\n", argv[1]);
+	fprintf(stderr, "Error opening `%s' for reading\n", emojitxtnm);
 	goto done;
+    }
+
+    for (int i = 3; i < argc; ++i)
+    {
+	EmojiTranslations *tr = EmojiTranslations_create(
+		argv[1], argv[2], argv[i]);
+	if (tr) translations[ntranslations++] = tr;
     }
 
     while (fgets(line, sizeof line, emojitxt))
@@ -293,6 +499,34 @@ int main(int argc, char **argv)
 			sizeof buckets[hash].emojis);
 	    }
 	    buckets[hash].emojis[buckets[hash].size++] = offset++;
+	    for (int t = 0; t < ntranslations; ++t)
+	    {
+		EmojiTranslations *tr = translations[t];
+		TranslationBucket *tb = tr->buckets + hash;
+		TranslationEntry *te = 0;
+		for (size_t e = 0; e < tb->size; ++e)
+		{
+		    int len = 0;
+		    while (emoji->utf16[len] == tb->entries[e]->emoji[len])
+		    {
+			if (!emoji->utf16[len])
+			{
+			    te = tb->entries[e];
+			    break;
+			}
+			++len;
+		    }
+		    if (te) break;
+		}
+		if (te)
+		{
+		    fprintf(tr->ts, "    <message>\n"
+			    "      <source>%s</source>\n"
+			    "      <translation type=\"finished\">%s"
+			    "</translation>\n"
+			    "    </message>\n", xmlescape(emoji->name), te->text);
+		}
+	    }
 	}
     }
     offset = 0;
@@ -331,6 +565,26 @@ int main(int argc, char **argv)
 
     rc = EXIT_SUCCESS;
 done:
+
+    for (int i = 0; i < ntranslations; ++i)
+    {
+	EmojiTranslations *tr = translations[i];
+	for (size_t b = 0; b < sizeof tr->buckets / sizeof *tr->buckets; ++b)
+	{
+	    TranslationBucket *tb = tr->buckets + b;
+	    for (size_t e = 0; e < tb->size; ++e)
+	    {
+		TranslationEntry *te = tb->entries[e];
+		free(te->text);
+		free(te->emoji);
+	    }
+	    free(tb->entries);
+	}
+	fputs("  </context>\n</TS>\n", tr->ts);
+	fclose(tr->ts);
+	free(tr);
+    }
+
     if (groups)
     {
 	for (size_t i = 0; i < sizeof buckets / sizeof *buckets; ++i)
