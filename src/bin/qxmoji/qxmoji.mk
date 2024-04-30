@@ -21,8 +21,12 @@ qxmoji_USE_QT=		Gui Network Widgets
 qxmoji_USE_QT5=		X11Extras
 qxmoji_QRC=		icon
 qxmoji_MOCMODE=		included
+qxmoji_QT_LANGUAGES=	de
+qxmoji_QT_TRANSLATIONS=	emojidata
+qxmoji_translationsdir=	$(qxmoji_datadir)$(PSEP)translations
 qxmoji_PKGDEPS=		xcb \
 			xcb-xtest
+qxmoji_DEFINES=		-DTRANSLATIONSDIR=\"$(qxmoji_translationsdir)\"
 qxmoji_SUB_FILES=	decl.h \
 			qxmoji.desktop
 qxmoji_SUB_LIST=	bindir=$(bindir)
@@ -32,7 +36,14 @@ qxmoji_ICONSIZES=	16x16 32x32 48x48 256x256
 qxmoji_DESKTOPFILE=	qxmoji
 qxmoji_DOCS=		README.md
 
+qxmoji_GENTS=		$(foreach l,$(qxmoji_QT_LANGUAGES),\
+			$(qxmoji_SRCDIR)$(PSEP)emojidata_$l.ts)
+
 GEN_EGEN_tool=		$(EMOJIGEN_TARGET)
-GEN_EGEN_args=		$2 >$1
+GEN_EGEN_args=		$2 $(qxmoji_SRCDIR)$(PSEP)emojidata \
+			$(qxmoji_QT_LANGUAGES) >$1
 
 $(call binrules,qxmoji)
+
+$(qxmoji_GENTS): $(qxmoji_SRCDIR)$(PSEP)emojidata.cpp
+CLEAN += $(qxmoji_GENTS)

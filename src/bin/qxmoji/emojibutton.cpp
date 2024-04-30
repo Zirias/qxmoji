@@ -3,6 +3,7 @@
 #include "emoji.h"
 #include "emojistring.h"
 
+#include <QCoreApplication>
 #include <QMouseEvent>
 
 EmojiButton::EmojiButton(QWidget *parent) :
@@ -22,7 +23,8 @@ void EmojiButton::setEmoji(const Emoji *emoji)
     if (emoji)
     {
 	setText(Emoji_qstr(emoji));
-	setToolTip(Emoji_name(emoji));
+	setToolTip(QCoreApplication::translate("EmojiData",
+		    Emoji_name(emoji)));
 	show();
     }
     else hide();
