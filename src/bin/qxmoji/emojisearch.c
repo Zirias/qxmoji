@@ -11,8 +11,9 @@ static const Emoji *results[EMOJISEARCH_MAXRESULTS+1];
 static char patbuf[MAXLEN+1];
 static char nmbuf[MAXLEN+1];
 
-static void takelower(char *buf, const char *str)
+static void takelower(const char *str, void *bufptr)
 {
+    char *buf = bufptr;
     int i = 0;
     for (; i < MAXLEN && *str; ++i)
     {
@@ -25,7 +26,7 @@ SOLOCAL const Emoji **Emoji_search(const char *pattern)
 {
     int nresults = 0;
 
-    takelower(patbuf, pattern);
+    takelower(pattern, patbuf);
 
     for (size_t i = 0; i < EmojiGroup_count(); ++i)
     {
@@ -33,7 +34,7 @@ SOLOCAL const Emoji **Emoji_search(const char *pattern)
 	for (size_t j = 0; j < EmojiGroup_countEmojis(group); ++j)
 	{
 	    const Emoji *emoji = EmojiGroup_emoji(group, j);
-	    takelower(nmbuf, Emoji_name(emoji));
+	    Emoji_passlocalname(emoji, takelower, nmbuf);
 	    if (strstr(nmbuf, patbuf))
 	    {
 		results[nresults++] = emoji;

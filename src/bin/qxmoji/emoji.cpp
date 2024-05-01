@@ -62,6 +62,12 @@ SOLOCAL QString Emoji_localname(const Emoji *self)
     return QCoreApplication::translate("EmojiData", self->name);
 }
 
+SOLOCAL void Emoji_passlocalname(const Emoji *self,
+	void (*recv)(const char *, void *), void *ctx)
+{
+    recv(qPrintable(Emoji_localname(self)), ctx);
+}
+
 SOLOCAL const Emoji *Emoji_byQstr(const QString &str)
 {
     int hash = hashstr(str);

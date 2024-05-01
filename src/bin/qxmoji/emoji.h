@@ -15,6 +15,9 @@ DECLEXPORT const char32_t *Emoji_codepoints(const Emoji *self)
     CMETHOD ATTR_PURE ATTR_RETNONNULL;
 DECLEXPORT const char *Emoji_name(const Emoji *self)
     CMETHOD ATTR_PURE ATTR_RETNONNULL;
+DECLEXPORT void Emoji_passlocalname(const Emoji *self,
+	void (*recv)(const char *, void *), void *ctx)
+    CMETHOD ATTR_NONNULL((2));
 
 DECLEXPORT size_t Emoji_count(void)
     ATTR_CONST;
