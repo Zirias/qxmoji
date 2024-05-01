@@ -4,7 +4,7 @@
 
 SearchField::SearchField() : QLineEdit()
 {
-    setPlaceholderText("Click to type and search ...");
+    setPlaceholderText(tr("Click to type and search ..."));
     setClearButtonEnabled(true);
 }
 

@@ -24,6 +24,11 @@
 #include <QX11Info>
 #endif
 
+#define TranslateTrayMode \
+QT_TRANSLATE_NOOP("TrayMode", "Disabled") \
+QT_TRANSLATE_NOOP("TrayMode", "Enabled") \
+QT_TRANSLATE_NOOP("TrayMode", "Minimize")
+
 class QXmojiPrivate {
     Q_DISABLE_COPY(QXmojiPrivate)
     Q_DECLARE_PUBLIC(QXmoji)
@@ -70,10 +75,10 @@ public:
 QXmojiPrivate::QXmojiPrivate(QXmoji *app) :
     q_ptr(loadTranslations(app)),
     xcb(0),
-    showAct("Show &Window"),
-    aboutAct("&About"),
-    settingsAct("&Settings"),
-    exitAct("E&xit"),
+    showAct(QXmoji::tr("Show &Window")),
+    aboutAct(QXmoji::tr("&About")),
+    settingsAct(QXmoji::tr("&Settings")),
+    exitAct(QXmoji::tr("E&xit")),
     settings(QDir::homePath() + "/.config/qxmoji.ini"),
     history(settings.history()),
     win(&contextMenu, &font, &history),
@@ -110,7 +115,7 @@ QXmojiPrivate::QXmojiPrivate(QXmoji *app) :
     aboutDlg.setWindowIcon(appIcon);
     settingsDlg.setWindowIcon(appIcon);
     trayIcon.setIcon(appIcon);
-    trayIcon.setToolTip("Emoji keyboard");
+    trayIcon.setToolTip(QXmoji::tr("Emoji keyboard"));
     trayIcon.setContextMenu(&contextMenu);
     font.setScale(settings.scale());
     contextMenu.addAction(&showAct);

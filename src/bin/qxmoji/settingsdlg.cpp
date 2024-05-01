@@ -11,7 +11,7 @@
 SettingsDlg::SettingsDlg(QWidget *parent, QXmojiSettings *settings) :
     QDialog(parent)
 {
-    setWindowTitle("qXmoji settings");
+    setWindowTitle(QDialog::tr("qXmoji settings"));
 
     QWidget *settingsForm = new QWidget(this);
     QFormLayout *layout = new QFormLayout(settingsForm);
@@ -20,55 +20,60 @@ SettingsDlg::SettingsDlg(QWidget *parent, QXmojiSettings *settings) :
     layout->setContentsMargins(0, t, 0, b);
     layout->setLabelAlignment(Qt::AlignRight);
 
-    QLabel *singleLabel = new QLabel("Instance mode:", this);
-    singleLabel->setToolTip(
+    QLabel *singleLabel = new QLabel(QDialog::tr("Instance mode:"), this);
+    singleLabel->setToolTip(QDialog::tr(
 	    "In \"single\" mode, only one instance of qXmoji is allowed to\n"
 	    "run per user on the local machine, and starting another one\n"
 	    "will just bring the running instance to the front.\n"
 	    "In \"multi\" mode, no checks for already running instances\n"
-	    "are done.");
+	    "are done."));
     QComboBox *singleSelect = new QComboBox(this);
     singleSelect->setToolTip(singleLabel->toolTip());
-    singleSelect->addItem("Single", true);
-    singleSelect->addItem("Multi", false);
+    singleSelect->addItem(QDialog::tr("Single"), true);
+    singleSelect->addItem(QDialog::tr("Multi"), false);
     layout->addRow(singleLabel, singleSelect);
 
-    QLabel *trayLabel = new QLabel("Tray mode:", this);
-    trayLabel->setToolTip(
+    QLabel *trayLabel = new QLabel(QDialog::tr("Tray mode:"), this);
+    trayLabel->setToolTip(QDialog::tr(
 	    "Disabled: Do not use a tray icon.\n"
 	    "Enabled: Use a tray icon, qXmoji keeps running on window close.\n"
 	    "Minimize: Use a tray icon with \"minimize to tray\", closing\n"
-	    "the window still exits.");
+	    "the window still exits."));
     QComboBox *traySelect = new QComboBox(this);
     traySelect->setToolTip(trayLabel->toolTip());
     QMetaEnum trayEnum = QMetaEnum::fromType<QXmoji::TrayMode>();
     for (int i = 0; i < trayEnum.keyCount(); ++i)
     {
-	traySelect->addItem(trayEnum.key(i), trayEnum.value(i));
+	traySelect->addItem(QCoreApplication::translate("TrayMode",
+		    trayEnum.key(i)), trayEnum.value(i));
     }
     layout->addRow(trayLabel, traySelect);
 
-    QLabel *scaleLabel = new QLabel("Scale size:", this);
-    scaleLabel->setToolTip("Scale up the size of displayed Emojis.\n"
-	    "Tiny means no scaling (same size as default window font)");
+    QLabel *scaleLabel = new QLabel(QDialog::tr("Scale size:"), this);
+    scaleLabel->setToolTip(QDialog::tr(
+	    "Scale up the size of displayed Emojis.\n"
+	    "Tiny means no scaling (same size as default window font)"));
     QComboBox *scaleSelect = new QComboBox(this);
     scaleSelect->setToolTip(scaleLabel->toolTip());
     QMetaEnum scaleEnum = QMetaEnum::fromType<EmojiFont::Scale>();
     for (int i = 0; i < scaleEnum.keyCount(); ++i)
     {
-	scaleSelect->addItem(scaleEnum.key(i), scaleEnum.value(i));
+	scaleSelect->addItem(QCoreApplication::translate("Scale",
+		    scaleEnum.key(i)), scaleEnum.value(i));
     }
     layout->addRow(scaleLabel, scaleSelect);
 
-    QLabel *waitLabel = new QLabel("Keymap reset wait (ms):", this);
-    waitLabel->setToolTip("qXmoji sends emoji codepoints as key press events.\n"
+    QLabel *waitLabel = new QLabel(
+	    QDialog::tr("Keymap reset wait (ms):"), this);
+    waitLabel->setToolTip(QDialog::tr(
+	    "qXmoji sends emoji codepoints as key press events.\n"
 	    "Therefore, the keyboard mapping must be temporarily changed.\n"
 	    "This is the time in ms to wait before restoring the mapping\n"
 	    "after sending the keyboard events.\n"
 	    "Raising this might help if emojis don't \"arrive\" at all or you\n"
 	    "see basic (ASCII) characters instead.\n"
 	    "It won't help when a single emoji is shown as two or more\n"
-	    "symbols, this is handled by the receiving client.");
+	    "symbols, this is handled by the receiving client."));
     QSpinBox *waitSelect = new QSpinBox(this);
     waitSelect->setToolTip(waitLabel->toolTip());
     waitSelect->setMinimum(0);

@@ -10,7 +10,7 @@
 AboutDlg::AboutDlg(QWidget *parent) :
     QDialog(parent)
 {
-    setWindowTitle("About qXmoji");
+    setWindowTitle(QDialog::tr("About qXmoji"));
     QHBoxLayout *layout = new QHBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
     QLabel *logo = new QLabel(this);
@@ -19,14 +19,17 @@ AboutDlg::AboutDlg(QWidget *parent) :
     QWidget *content = new QWidget(this);
     QVBoxLayout *contentLayout = new QVBoxLayout(content);
     QLabel *text = new QLabel(content);
-    text->setText("<h2>qXmoji v" QXMOJIVERSTR "</h2>"
-	    "<p>X11 emoji keyboard with a Qt GUI</p>"
-	    "<p><table><tr><td>License:</td><td>BSD 2-clause</td></tr>"
-	    "<tr><td>Author:</td><td>Felix Palmen <a href=\"mailto:"
+    text->setText(QString("<h2>qXmoji v" QXMOJIVERSTR "</h2>"
+	    "<p>%1</p>"
+	    "<p><table><tr><td>%2:</td><td>BSD 2-clause</td></tr>"
+	    "<tr><td>%3:</td><td>Felix Palmen <a href=\"mailto:"
 	    "felix@palmen-it.de\">&lt;felix@palmen-it.de&gt;</a></td></tr>"
 	    "<tr><td>WWW:</td><td><a "
 	    "href=\"https://github.com/Zirias/qxmoji\">"
-	    "https://github.com/Zirias/qxmoji</a></td></tr></table></p>");
+	    "https://github.com/Zirias/qxmoji</a></td></tr></table></p>")
+	    .arg(QDialog::tr("X11 emoji keyboard with a Qt GUI"))
+	    .arg(QDialog::tr("License"))
+	    .arg(QDialog::tr("Author")));
     text->setTextFormat(Qt::RichText);
     text->setTextInteractionFlags(Qt::TextBrowserInteraction);
     text->setOpenExternalLinks(true);

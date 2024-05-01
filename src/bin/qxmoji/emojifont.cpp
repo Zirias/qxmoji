@@ -11,6 +11,13 @@
 #define sysfont qfontdatabase.systemFont(QFontDatabase::GeneralFont)
 #endif
 
+#define TranslateScale \
+QT_TRANSLATE_NOOP("Scale", "Tiny") \
+QT_TRANSLATE_NOOP("Scale", "Small") \
+QT_TRANSLATE_NOOP("Scale", "Medium") \
+QT_TRANSLATE_NOOP("Scale", "Large") \
+QT_TRANSLATE_NOOP("Scale", "Huge")
+
 class EmojiFontPrivate
 {
     Q_DISABLE_COPY(EmojiFontPrivate)
