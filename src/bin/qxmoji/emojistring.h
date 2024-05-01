@@ -11,5 +11,7 @@ const QString &Emoji_qstr(const Emoji *self)
     CMETHOD ATTR_PURE;
 const Emoji *Emoji_byQstr(const QString &str)
     ATTR_PURE;
+QString Emoji_localname(const Emoji *self)
+    CMETHOD;
 
 #endif

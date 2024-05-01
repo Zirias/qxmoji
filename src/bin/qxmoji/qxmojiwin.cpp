@@ -62,7 +62,7 @@ class InitEmojiQueue
 	    if (remaining)
 	    {
 		QQueue<Params> *q = 0;
-		int shown = tabs->currentIndex() - 2;
+		int shown = tabs->currentIndex() - 1;
 		if (shown >= 0 && queue[shown].count() > 0) q = &queue[shown];
 		else for (int i = 0; i < ngroups &&
 			(q = &queue[i])->count() == 0; ++i)
@@ -157,13 +157,16 @@ QXmojiWin::QXmojiWin(QMenu *contextMenu, const EmojiFont *font,
     tabs->addTab(searchTab, QString::fromUcs4(U"\x1f50d"));
     tabs->setTabToolTip(tn++, "Search");
 
+    size_t ngroups = EmojiGroup_count();
+    d_ptr->ieq = new InitEmojiQueue(ngroups + 1, tabs);
+
     QScrollArea *historyArea = new QScrollArea(tabs);
     QWidget *historyPane = new QWidget(historyArea);
     FlowLayout *historylayout = new FlowLayout(historyPane);
     for (int i = 0; i < EMOJIHISTORY_MAXLEN; ++i)
     {
 	EmojiButton *btn = buttons[bn++];
-	btn->setEmoji(history->at(i));
+	d_ptr->ieq->enqueue(0, btn, history->at(i));
 	historylayout->addWidget(btn);
     }
     historyPane->setLayout(historylayout);
@@ -172,8 +175,6 @@ QXmojiWin::QXmojiWin(QMenu *contextMenu, const EmojiFont *font,
     tabs->addTab(historyArea, QString::fromUtf16(u"\x23f3"));
     tabs->setTabToolTip(tn++, "History");
 
-    size_t ngroups = EmojiGroup_count();
-    d_ptr->ieq = new InitEmojiQueue(ngroups, tabs);
     for (size_t n = 0; n < ngroups; ++n)
     {
 	const EmojiGroup *group = EmojiGroup_at(n);
@@ -184,7 +185,7 @@ QXmojiWin::QXmojiWin(QMenu *contextMenu, const EmojiFont *font,
 	{
 	    const Emoji *emoji = EmojiGroup_emoji(group, m);
 	    EmojiButton *btn = buttons[bn++];
-	    d_ptr->ieq->enqueue(n, btn, emoji);
+	    d_ptr->ieq->enqueue(n + 1, btn, emoji);
 	    layout->addWidget(btn);
 	}
 	emojis->setLayout(layout);

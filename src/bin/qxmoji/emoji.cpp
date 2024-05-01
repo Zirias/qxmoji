@@ -2,6 +2,7 @@
 
 #include <string.h>
 
+#include <QCoreApplication>
 #include <QString>
 
 struct Emoji
@@ -54,6 +55,11 @@ SOLOCAL const QString &Emoji_qstr(const Emoji *self)
 SOLOCAL const char *Emoji_name(const Emoji *self)
 {
     return self->name;
+}
+
+SOLOCAL QString Emoji_localname(const Emoji *self)
+{
+    return QCoreApplication::translate("EmojiData", self->name);
 }
 
 SOLOCAL const Emoji *Emoji_byQstr(const QString &str)
