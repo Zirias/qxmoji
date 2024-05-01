@@ -22,7 +22,7 @@ qxmoji_USE_QT5=		X11Extras
 qxmoji_QRC=		icon
 qxmoji_MOCMODE=		included
 qxmoji_QT_LANGUAGES=	de
-qxmoji_QT_TRANSLATIONS=	emojidata
+qxmoji_QT_TRANSLATIONS=	qxmoji emojidata
 qxmoji_translationsdir=	$(qxmoji_datadir)$(PSEP)translations
 qxmoji_PKGDEPS=		xcb \
 			xcb-xtest

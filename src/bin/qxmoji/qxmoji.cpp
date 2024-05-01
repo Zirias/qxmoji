@@ -12,10 +12,12 @@
 #include "xkeyinjector.h"
 
 #include <QAction>
+#include <QLocale>
 #include <QMenu>
 #include <QDir>
 #include <QIcon>
 #include <QSystemTrayIcon>
+#include <QTranslator>
 #include <QWindow>
 
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
@@ -25,6 +27,8 @@
 class QXmojiPrivate {
     Q_DISABLE_COPY(QXmojiPrivate)
     Q_DECLARE_PUBLIC(QXmoji)
+    QTranslator emojitranslator;
+    QTranslator maintranslator;
     QXmoji *const q_ptr;
 
     XcbAdapter *xcb;
@@ -46,12 +50,25 @@ class QXmojiPrivate {
     
     QXmojiPrivate(QXmoji *);
 
+    QXmoji *loadTranslations(QXmoji *app)
+    {
+	if (emojitranslator.load(QLocale(), "emojidata", "_", TRANSLATIONSDIR))
+	{
+	    app->installTranslator(&emojitranslator);
+	}
+	if (maintranslator.load(QLocale(), "qxmoji", "_", TRANSLATIONSDIR))
+	{
+	    app->installTranslator(&maintranslator);
+	}
+	return app;
+    }
+
 public:
     ~QXmojiPrivate();
 };
 
 QXmojiPrivate::QXmojiPrivate(QXmoji *app) :
-    q_ptr(app),
+    q_ptr(loadTranslations(app)),
     xcb(0),
     showAct("Show &Window"),
     aboutAct("&About"),

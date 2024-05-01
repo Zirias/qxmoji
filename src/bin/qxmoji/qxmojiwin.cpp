@@ -155,7 +155,7 @@ QXmojiWin::QXmojiWin(QMenu *contextMenu, const EmojiFont *font,
     searchLayout->addWidget(searchArea);
     searchTab->setLayout(searchLayout);
     tabs->addTab(searchTab, QString::fromUcs4(U"\x1f50d"));
-    tabs->setTabToolTip(tn++, "Search");
+    tabs->setTabToolTip(tn++, tr("Search"));
 
     size_t ngroups = EmojiGroup_count();
     d_ptr->ieq = new InitEmojiQueue(ngroups + 1, tabs);
@@ -173,7 +173,7 @@ QXmojiWin::QXmojiWin(QMenu *contextMenu, const EmojiFont *font,
     historyArea->setWidget(historyPane);
     historyArea->setWidgetResizable(true);
     tabs->addTab(historyArea, QString::fromUtf16(u"\x23f3"));
-    tabs->setTabToolTip(tn++, "History");
+    tabs->setTabToolTip(tn++, tr("History"));
 
     for (size_t n = 0; n < ngroups; ++n)
     {
@@ -192,7 +192,8 @@ QXmojiWin::QXmojiWin(QMenu *contextMenu, const EmojiFont *font,
 	area->setWidget(emojis);
 	area->setWidgetResizable(true);
 	tabs->addTab(area, Emoji_qstr(EmojiGroup_emoji(group, 0)));
-	tabs->setTabToolTip(tn++, EmojiGroup_name(group));
+	tabs->setTabToolTip(tn++, QCoreApplication::translate("EmojiGroup",
+		    EmojiGroup_name(group)));
     }
     tabs->setCurrentIndex(history->len() ? 1 : 2);
 
