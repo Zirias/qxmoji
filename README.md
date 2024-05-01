@@ -100,7 +100,7 @@ Dependencies:
 * C and C++ compilers understanding GNU commandline options and C11/C++17
   language standards (GNU GCC and LLVM clang work fine)
 * GNU make
-* Qt's `moc` and `rcc` utilities
+* Qt's `moc`, `rcc` and `lrelease` utilities
 * Qt libs: `Core`, `Gui`, `Network` and `Widgets`, plus `X11Extras` for Qt5
 * xcb libs: `libxcb-xtest`
 

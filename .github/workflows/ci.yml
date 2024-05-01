@@ -11,8 +11,8 @@ env:
   CI_CSTD: -std=c11
   CI_CXXSTD: -std=c++17
   CI_DEPS_XCB: libxcb-xtest0-dev
-  CI_DEPS_QT5: qtbase5-dev libqt5x11extras5-dev
-  CI_DEPS_QT6: qt6-base-dev qt6-base-dev-tools
+  CI_DEPS_QT5: qtbase5-dev qttools5-dev-tools libqt5x11extras5-dev
+  CI_DEPS_QT6: qt6-base-dev qt6-base-dev-tools qt6-l10n-tools
 
 jobs:
   build-qt5:
