@@ -224,6 +224,8 @@ static const char *parsegroup(void)
     }
     if (match(c, "People & Body")) return 0;
     if (match(c, "Component")) return 0;
+    if (match(c, "Objects")) return 0;
+    if (match(c, "Activities")) return "Objects";
     return c;
 }
 
@@ -535,7 +537,8 @@ int main(int argc, char **argv)
     {
 	if (i) puts(",");
 	group = groups[i];
-	printf("    { %zu, \"%s\", emojiint_emojis+%zu }", group->size,
+	printf("    { %zu, QT_TRANSLATE_NOOP(\"EmojiGroup\", \"%s\"), "
+		"emojiint_emojis+%zu }", group->size,
 		group->name, offset);
 	offset += group->size;
     }
