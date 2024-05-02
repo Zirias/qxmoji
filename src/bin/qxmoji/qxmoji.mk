@@ -1,4 +1,4 @@
-qxmoji_VERSION=		0.6
+qxmoji_VERSION=		0.7
 qxmoji_MODULES=		emojisearch \
 			main \
 			nfsdetect \
