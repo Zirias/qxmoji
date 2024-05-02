@@ -1,6 +1,9 @@
 [Desktop Entry]
 Name=qXmoji
-GenericName=X11 emoji keyboard
+GenericName=X11 Emoji Keyboard
+GenericName[de]=X11 Emoji-Tastatur
+Comment=Send emojis as X11 keyboard events
+Comment[de]=Sende Emojis als X11 Tastaturereignisse
 Exec=%%bindir%%/qxmoji
 Icon=qxmoji
 StartupNotify=true
