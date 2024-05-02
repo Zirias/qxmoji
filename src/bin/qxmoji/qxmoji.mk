@@ -34,7 +34,8 @@ qxmoji_GEN=		EGEN
 qxmoji_EGEN_FILES=	emojidata.cpp:contrib
 qxmoji_ICONSIZES=	16x16 32x32 48x48 256x256
 qxmoji_DESKTOPFILE=	qxmoji
-qxmoji_DOCS=		README.md
+qxmoji_DOCS=		README.md \
+			TRANSLATE.md
 
 qxmoji_GENTS=		$(foreach l,$(qxmoji_QT_LANGUAGES),\
 			$(qxmoji_SRCDIR)$(PSEP)emojidata_$l.ts)

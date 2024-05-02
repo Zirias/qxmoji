@@ -33,7 +33,7 @@ Then save the file.
 
 ### Finish
 
-Now, building and installing qXmoji should give you a version full localized
+Now, building and installing qXmoji should give you a version fully localized
 for "Xylophone".
 
 `git add` the new CLDR files, `src/bin/qxmoji/qxmoji_xy.ts` and
