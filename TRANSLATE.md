@@ -5,14 +5,19 @@ hypothetical language "Xylophone" with language-code `xy`.
 
 ### Preparations
 
-Any changes should be done on top of the current `master` branch. The
-recommended workflow is to create a fork of `qXmoji` on github and work
-on a dedicated branch in your fork. For example, after forking to your
-account `__JohnDoe__`, you'd do the following:
+Any changes should be done on top of the current `master` branch.
+
+The recommended workflow is to create a fork of `qXmoji` on github and work on
+a dedicated branch in your fork. For example, after forking to your account
+`__JohnDoe__`, you'd do the following:
 
     git clone --recurse-submodules https://github.com/__JohnDoe__/qxmoji.git
     cd qxmoji
     git checkout -b translate-xy
+
+In case you don't want to use github, you can also just clone the original
+repository and create your local branch (same as above with `Zirias` instead
+of `__JohnDoe__`).
 
 ### Obtain translated emoji names
 
@@ -55,3 +60,6 @@ for "Xylophone".
 `src/bin/qxmoji/qxmoji.mk` and `src/bin/qxmoji/qxmoji.desktop.in`, create a
 commit, and please, send a pull request, thank you very much! 🤩
 
+If you didn't fork on github, you can also run `git format-patch -1` after
+committing and send me the resulting patch-file to
+[felix@palmen-it.de](mailto:felix@palmen-it.de).
