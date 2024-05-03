@@ -56,7 +56,7 @@ alphabetically as well.
 Now, building and installing qXmoji should give you a version fully localized
 for "Xylophone".
 
-`git add` the new CLDR files, `src/bin/qxmoji/qxmoji_xy.ts`,
+`git add` the new CLDR files, `.gitignore`, `src/bin/qxmoji/qxmoji_xy.ts`,
 `src/bin/qxmoji/qxmoji.mk` and `src/bin/qxmoji/qxmoji.desktop.in`, create a
 commit, and please, send a pull request, thank you very much! 🤩
 
