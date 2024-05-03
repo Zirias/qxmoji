@@ -162,7 +162,7 @@ Raising this might help if emojis don&apos;t &quot;arrive&quot; at all or you
 see basic (ASCII) characters instead.
 It won&apos;t help when a single emoji is shown as two or more
 symbols, this is handled by the receiving client.</source>
-        <translation>qXmoji envois des emojis en événements de clavier. Pur ça,
+        <translation>qXmoji envois des emojis en événements de clavier. Pour ça,
 il faut changer la disposition du clavier. Ceci es le délai avant
 remettre la disposition originale, après les événements sont
 envois.
