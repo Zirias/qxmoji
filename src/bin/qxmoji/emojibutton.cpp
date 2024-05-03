@@ -9,6 +9,8 @@ EmojiButton::EmojiButton(QWidget *parent) :
     QLabel(parent)
 {
     hide();
+    setBackgroundRole(QPalette::Highlight);
+    setCursor(Qt::PointingHandCursor);
 }
 
 const Emoji *EmojiButton::emoji() const
@@ -35,17 +37,13 @@ void EmojiButton::enterEvent(QEnterEvent *ev)
 #endif
 {
     (void) ev;
-    setBackgroundRole(QPalette::Highlight);
     setAutoFillBackground(true);
-    setCursor(Qt::PointingHandCursor);
 }
 
 void EmojiButton::leaveEvent(QEvent *ev)
 {
     (void) ev;
-    setBackgroundRole(QPalette::NoRole);
     setAutoFillBackground(false);
-    unsetCursor();
 }
 
 void EmojiButton::mousePressEvent(QMouseEvent *ev)
