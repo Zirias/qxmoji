@@ -32,5 +32,6 @@ defaults.mk
 /tools/*/dist/
 /src/bin/qxmoji/decl.h
 /src/bin/qxmoji/emojidata_de.ts
+/src/bin/qxmoji/emojidata_fr.ts
 /src/bin/qxmoji/emojidata.cpp
 /src/bin/qxmoji/qxmoji.desktop

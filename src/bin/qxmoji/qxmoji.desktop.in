@@ -2,8 +2,10 @@
 Name=qXmoji
 GenericName=X11 Emoji Keyboard
 GenericName[de]=X11 Emoji-Tastatur
+GenericName[fr]=X11 Clavier Emoji
 Comment=Send emojis as X11 keyboard events
 Comment[de]=Sende Emojis als X11 Tastaturereignisse
+Comment[fr]=Envois emojis par X11 événements de clavier
 Exec=%%bindir%%/qxmoji
 Icon=qxmoji
 StartupNotify=true
