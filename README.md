@@ -1,3 +1,16 @@
+## !! Deprecated !!
+
+qXmoji isn't developed any further. It is superseeded by
+[Xmoji](https://github.com/Zirias/xmoji), which uses X11 directly for its
+GUI.
+
+qXmoji suffered from a performance issue creating the large amount of
+"EmojiButtons" necessary as Qt widgets, which Xmoji solves, even adding
+flyouts for grouped emojis. Using X11 directly hasn't any drawbacks because
+the tool is X11-specific anyways.
+
+---
+
 # qXmoji – X11 emoji keyboard
 
 qXmoji is a very simple emoji keyboard designed to work with any X11
